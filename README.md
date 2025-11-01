@@ -33,9 +33,9 @@ I - I is the integral, which "averages" all of the past output values towards th
 
 D - The use of the "derivative" term which adds to the output proportionally to the "derivative" of the error. The derivative is like the instantaneous rate of change; imagine the slope of a curve calculated in one single spot. In practice, derivative action predicts system behavior and thus improves settling time and stability of the system (Wikipedia). This helps with dampening "overshoots," going beyond the setpoint, and "undershooting," going under the setpoint. Generally, using dampening like this is significantly more stable than using a pure P controller, as the controller becomes "softer."
 
-### S.V.A.
+### Feedforward / S.V.A.
 
-[SVA](https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/introduction-to-feedforward.html)
+[Feedforwards](https://docs.wpilib.org/en/stable/docs/software/advanced-controls/introduction/introduction-to-feedforward.html)
 
 Feedforward controls, often called S.V.A. (Static, Velocity, Acceleration) or sometimes just kV/kA, are "open-loop" controllers that predict what motor output we'll need before we get there. Unlike PID which reacts to error after it happens, feedforward proactively calculates the voltage needed based on physics and our desired motion profile. Open-loop control also does not require any encoder input.
 
@@ -49,7 +49,7 @@ In practice,if used, feedforward is almost always paired with PID. Feedforward g
 
 ## Joysticks
 
-Joysticks use the standard FRC library. Some great documentation and a tutorial can be found [here](https://docs.wpilib.org/en/stable/docs/software/basic-programming/joystick.html). You can use almost any controller including Dualshock controllers, Xbox controllers, and joysticks. I have also seen custom driver stations that use homemade controllers. We made one of these a few years back and should still have it. However, I don't know if there's any reuseable code.
+Joysticks use the standard FRC library. Some great documentation and a tutorial can be found [here](https://docs.wpilib.org/en/stable/docs/software/basic-programming/joystick.html). You can use almost any controller including Dualshock controllers, Xbox controllers, and joysticks. I have also seen custom driver stations that use homemade controllers; we actually made one for the 2025 game.
 
 ## Swerve
 
@@ -63,12 +63,9 @@ If you want the base swerve code you would copy and paste the paper on the secon
 
 ## Contributing
 
-To contribute, you need to be part of the HVA Robotics organization. Then, you can create a branch, work on that, then merge once everything is ready. However, you can commit the tested code directly to the main branch when on the drive laptop. 
+To contribute, you need to be part of the HVA Robotics Github org. Then, you can create a branch, work on that, then merge once everything is ready. However, you can commit the tested code directly to the main branch when on the drive laptop. 
 
 Writing and testing code can take some time to set up, but after that, it's a matter of writing good code (as opposed to fighting the compiler). You need the dev tools that can be installed (if you haven't already): [WPIlib dev tools](https://github.com/wpilibsuite/allwpilib/releases/tag/v2024.3.2).
-
-A good way of contributing is updating all the libraries to the newest. You can do that by running the code and trying to clear up the page and a half of "warning!" messages. As 
-a quick note: It will still build with these warnings.
 
 ## Testing
 
