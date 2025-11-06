@@ -1,25 +1,19 @@
 #pragma once
 
 #pragma region Includes
-#include <functional>
-
-#include <frc2/command/Command.h>
 #include <frc2/command/CommandPtr.h>
 
 #include <frc2/command/FunctionalCommand.h>
 #include <frc2/command/WaitCommand.h>
 
-#include <frc/kinematics/ChassisSpeeds.h>
 #include <frc/geometry/Pose2d.h>
 #include <frc/geometry/Transform2d.h>
+#include <frc/kinematics/ChassisSpeeds.h>
 
-#include "subsystem/Chassis.h"
-#include "subsystem/Gyro.h"
-
-#include "Constants.h"
+#include "subsystems/Chassis.h"
 #pragma endregion
 
-#pragma region ChassisZeroHeading
+#pragma region ChassisZeroHeading(Gyro* gyro)
 /// @brief Creates a command to zero the heading of the gyro.
 /// @param gyro A pointer to the Gyro subsystem.
 /// @return A CommandPtr that resets the gyro yaw to zero.
@@ -36,47 +30,30 @@ inline frc2::CommandPtr ChassisZeroHeading(Gyro* gyro)
 }
 #pragma endregion
 
-#pragma region ChassisDrive
- /// @brief Creates a command to drive the chassis using the provided Swerve and chassis speeds supplier.
-///  @param swerve A pointer to the Swerve subsystem.
+#pragma region ChassisDrive(Chassis* chassis, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier)
+ /// @brief Creates a command to drive the chassis using the provided speeds supplier.
+///  @param chassis A pointer to the chassis subsystem.
 ///  @param chassisSpeedsSupplier A function that supplies the desired chassis speeds.
 ///  @return A CommandPtr that executes the chassis drive functionality.
-inline frc2::CommandPtr ChassisDrive(Chassis* swerve, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier)
+inline frc2::CommandPtr ChassisDrive(Chassis* chassis, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier)
 {
     // Create and return a FunctionalCommand that drives the chassis
     return frc2::FunctionalCommand{
-        []                              ()                { },                                         // Initialization function (runs once when the command starts)
-        [swerve, chassisSpeedsSupplier] ()                { swerve->Drive(chassisSpeedsSupplier()); }, // Execution function (runs repeatedly while the command is active)
-        []                              (bool interupted) { },                                         // End function (runs once when the command ends, either interrupted or completed) 
-        []                              ()                { return false; },                           // IsFinished function (determines when the command should end)  
-        { swerve }                                                                                     // Requirements (subsystems required by this command)
+        []                               ()                { },                                          // Initialization function (runs once when the command starts)
+        [chassis, chassisSpeedsSupplier] ()                { chassis->Drive(chassisSpeedsSupplier()); }, // Execution function (runs repeatedly while the command is active)
+        []                               (bool interupted) { },                                          // End function (runs once when the command ends, either interrupted or completed) 
+        []                               ()                { return false; },                            // IsFinished function (determines when the command should end)  
+        { chassis }                                                                                      // Requirements (subsystems required by this command)
     }.ToPtr();
 }
 #pragma endregion
 
-#pragma region FlipFieldCentricity
-/// @brief Creates a command to flip the field centricity of the Swerve.
-/// @param swerve A pointer to the Swerve subsystem. 
-/// @return A CommandPtr that flips the field centricity.
-inline frc2::CommandPtr FlipFieldCentricity(Chassis* swerve)
-{
-    // Create and return a FunctionalCommand that flips the field centricity
-    return frc2::FunctionalCommand{
-        []       ()                { },                             // Initialization function (runs once when the command starts)
-        [swerve] ()                { swerve->FlipFieldCentric(); }, // Execution function (runs repeatedly while the command is active)
-        []       (bool interupted) { },                             // End function (runs once when the command ends, either interrupted or completed)
-        []       ()                { return true; },                // IsFinished function (determines when the command should end)
-        { swerve }                                                  // Requirements (subsystems required by this command)
-    }.ToPtr();
-}
-#pragma endregion
-
-#pragma region ChassisDrivePose
-/// @brief Creates a command to drive the chassis to a specified pose using the Swerve.
-/// @param swerve A pointer to the Swerve subsystem.
+#pragma region ChassisDrivePose(Chassis* chassis, std::string CommandName)
+/// @brief Creates a command to drive the chassis to a specified pose.
+/// @param chassis A pointer to the chassis subsystem.
 /// @param CommandName The name of the command or path to follow.
 /// @return A CommandPtr that drives the chassis to the specified pose.
-inline frc2::CommandPtr ChassisDrivePose(Chassis* swerve, std::string CommandName)
+inline frc2::CommandPtr ChassisDrivePose(Chassis* chassis, std::string CommandName)
 {
     //return AutoBuilder::followPath(PathPlannerPath::fromPathFile(CommandName));
 
@@ -85,12 +62,12 @@ inline frc2::CommandPtr ChassisDrivePose(Chassis* swerve, std::string CommandNam
 }
 #pragma endregion
 
-#pragma region ChassisDrivePose (Pose2d)
-/// @brief Creates a command to drive the chassis to a specified pose using the Swerve.
-/// @param swerve A pointer to the Swerve subsystem.
+#pragma region ChassisDrivePose(Chassis* chassis, frc::Pose2d targetPose)
+/// @brief Creates a command to drive the chassis to a specified pose.
+/// @param chassis A pointer to the chassis subsystem.
 /// @param targetPose The target pose to drive to. End goal state relative to the origin, blue alliance side.
 /// @return A CommandPtr that drives the chassis to the specified pose.
-inline frc2::CommandPtr ChassisDrivePose(Chassis* swerve, frc::Pose2d targetPose)
+inline frc2::CommandPtr ChassisDrivePose(Chassis* chassis, frc::Pose2d targetPose)
 {
     // return AutoBuilder::pathfindToPose(targetPose, constants::PathPlanner::Constraints);
 
@@ -99,11 +76,28 @@ inline frc2::CommandPtr ChassisDrivePose(Chassis* swerve, frc::Pose2d targetPose
 }
 #pragma endregion
 
-#pragma region AlignToNearestTag
+#pragma region FlipFieldCentricity(Chassis* chassis)
+/// @brief Creates a command to flip the field centricity of the chassis.
+/// @param chassis A pointer to the chassis subsystem. 
+/// @return A CommandPtr that flips the field centricity.
+inline frc2::CommandPtr FlipFieldCentricity(Chassis* chassis)
+{
+    // Create and return a FunctionalCommand that flips the field centricity
+    return frc2::FunctionalCommand{
+        []        ()                { },                              // Initialization function (runs once when the command starts)
+        [chassis] ()                { chassis->FlipFieldCentric(); }, // Execution function (runs repeatedly while the command is active)
+        []        (bool interupted) { },                              // End function (runs once when the command ends, either interrupted or completed)
+        []        ()                { return true; },                 // IsFinished function (determines when the command should end)
+        { chassis }                                                   // Requirements (subsystems required by this command)
+    }.ToPtr();
+}
+#pragma endregion
+
+#pragma region AlignToNearestTag(Chassis* chassis, frc::Transform2d targetOffset)
 // // This command will align the robot to the nearest AprilTag
 // // It will use the AprilTag's pose to determine the target position and rotation
 // // The robot will drive towards the target position and rotate to face the target rotation
-// inline frc2::CommandPtr AlignToNearestTag(Swerve* swerve, frc::Transform2d targetOffset)
+// inline frc2::CommandPtr AlignToNearestTag(Chassis* chassis, frc::Transform2d targetOffset)
 // {
 //     // This doesn't need to be a variable. When I wrote this, I just really liked using lambdas. Now, it kinda needs to be because its not in its own class
 //     std::function<frc::Pose2d(frc::Pose2d, frc::Transform2d)> getTargetWithOffset = 

@@ -23,6 +23,7 @@ namespace hardware
                 // Configure the CANCoder
                 units::turn_t GetTurns() override
                 {
+                    // Get the absolute position from the CANCoder and return it as turns
                     return m_encoder.GetAbsolutePosition().GetValue();
                 }
 

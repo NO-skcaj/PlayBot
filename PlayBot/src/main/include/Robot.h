@@ -1,22 +1,25 @@
 #pragma once
 
-#include <frc/TimedRobot.h>
 #include <hal/FRCUsageReporting.h>
+#include <frc/TimedRobot.h>
 
 #include "lib/Logging.h"
-#include "Controller.h"
 #include "RobotContainer.h"
+
+#include "Constants.h"
 
 class Robot : public frc::TimedRobot
 {
     public:
 
-        Robot();
-
+        void RobotInit()     override;
         void RobotPeriodic() override;
 
     private:
 
+        // Pointer to the autonomous command
+        frc2::Command  *m_autonomousCommand = nullptr;
+
         // Instantiate the Robot container and get a pointer to the class
-        RobotContainer *m_robotContainer = RobotContainer::GetInstance();
+        RobotContainer *m_robotContainer    = RobotContainer::GetInstance();
 };

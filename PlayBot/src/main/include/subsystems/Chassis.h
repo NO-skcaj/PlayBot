@@ -21,8 +21,8 @@
 
 #include "lib/subsystem/SwerveModule.h"
 
-#include "subsystem/Vision.h"
-#include "subsystem/Gyro.h"
+#include "subsystems/Vision.h"
+#include "subsystems/Gyro.h"
 
 #include "Constants.h"
 
@@ -199,7 +199,7 @@ class Chassis : public frc2::SubsystemBase
 
         frc::SwerveDriveKinematics<4>                    m_kinematics;
         std::array<subsystem::SwerveModule, 4>           m_chassisModules;
-        
+
         frc::SwerveDrivePoseEstimator<4>                 m_poseEstimator;   
         bool                                             m_isFieldRelative;
 

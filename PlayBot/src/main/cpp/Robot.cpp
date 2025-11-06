@@ -1,8 +1,8 @@
 #include "Robot.h"
 
-#pragma region Robot
-/// @brief Constructor for the Robot class.
-Robot::Robot()
+#pragma region RobotInit
+/// @brief Method called when the robot class is instantiated.
+void Robot::RobotInit()
 {
     // Enable LiveWindow in test mode
     EnableLiveWindowInTest(true);
@@ -10,7 +10,7 @@ Robot::Robot()
     // Report the robot framework usage
     HAL_Report(HALUsageReporting::kResourceType_Framework, HALUsageReporting::kFramework_RobotBuilder);
 
-    Controller::GetInstance();
+    RobotContainer::GetInstance();
 }
 #pragma endregion
 
