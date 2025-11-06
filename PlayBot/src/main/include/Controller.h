@@ -9,40 +9,40 @@
 
 #include <frc/filter/SlewRateLimiter.h>
 
-#include "commands/BasicCommands.h"
+#include "commands/Chassis.h"
+#include "commands/Volcano.h"
 
 #include "Constants.h"
 
-
 class Controller
 {
-        public:
+    public:
 
-            static Controller* GetInstance();
+        static Controller* GetInstance();
 
-        private:
+    private:
         
-            Controller();
+        Controller();
         
-            std::function<frc::ChassisSpeeds()> GetChassisSpeeds();
+        std::function<frc::ChassisSpeeds()> GetChassisSpeeds();
 
-            void              ConfigureOperator();
+        void                                ConfigureOperator();
 
-            void              ConfigureDriverControls();
-            void              ConfigureDriverJogControls();
+        void                                ConfigureDriverControls();
+        void                                ConfigureDriverJogControls();
         
-            double            GetThrottleRange();
-            double            GetExponentialValue(double joystickValue, double exponent);
+        double                              GetThrottleRange();
+        double                              GetExponentialValue(double joystickValue, double exponent);
             
-            frc::XboxController m_driveController;
+        frc::XboxController                 m_driveController;
 
-            // // Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
-            // frc::SlewRateLimiter<units::scalar>  m_xspeedLimiter;
-            // frc::SlewRateLimiter<units::scalar>  m_yspeedLimiter;
-            // frc::SlewRateLimiter<units::scalar> m_rotLimiter;
-            
-            frc::SlewRateLimiter<units::scalar>             m_flywheelLimiter;
+        frc::SlewRateLimiter<units::scalar> m_flywheelLimiter;
 
-            Swerve*  m_swerve;
-            Volcano* m_volcano;
+        Chassis                            *m_chassis;
+        Volcano                            *m_volcano;
+
+        // // Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
+        // frc::SlewRateLimiter<units::scalar> m_xspeedLimiter;
+        // frc::SlewRateLimiter<units::scalar> m_yspeedLimiter;
+        // frc::SlewRateLimiter<units::scalar> m_rotLimiter;            
 };

@@ -33,26 +33,23 @@
 
 #include "lib/hardware/motors/Motor.h"
 
-
 namespace subsystem
 {
-
     class SwerveModule
     {
-        
         public:
 
             explicit                   SwerveModule(CANid_t driveMotorCanId, CANid_t angleMotorCanId, CANid_t angleEncoderCanId, 
                                                     hardware::motor::MotorConfiguration turnConfig, hardware::motor::MotorConfiguration driveConfig,
                                                     units::meter_t driveMotorConversion, units::radian_t angleMotorConversion);
 
-            void                       SetDesiredState(frc::SwerveModuleState& state);  // Sets the desired state for the module
+            void                       SetDesiredState(frc::SwerveModuleState& state);     // Sets the desired state for the module
 
-            frc::SwerveModuleState     GetState();                                            // Returns the current state of the module
+            frc::SwerveModuleState     GetState();                                         // Returns the current state of the module
 
-            frc::SwerveModulePosition  GetPosition();                                         // Returns the current position of the module
+            frc::SwerveModulePosition  GetPosition();                                      // Returns the current position of the module
 
-            void                       ResetDriveEncoder();                                   // Zeroes all the  encoders
+            void                       ResetDriveEncoder();                                // Zeroes all the  encoders
 
             void                       SetWheelAngleToForward(units::angle::radian_t desiredAngle);
 
@@ -60,13 +57,11 @@ namespace subsystem
 
             units::angle::radian_t     GetAbsoluteEncoderAngle();
 
-            hardware::motor::TalonFX     m_driveMotor;
-            hardware::motor::SparkMax    m_angleMotor;
-            hardware::encoder::CANCoder  m_angleAbsoluteEncoder;
+            hardware::motor::TalonFX    m_driveMotor;
+            hardware::motor::SparkMax   m_angleMotor;
+            hardware::encoder::CANCoder m_angleAbsoluteEncoder;
 
-            units::meter_t               m_driveConversion;
-            units::radian_t              m_angleConversion;
-
+            units::meter_t              m_driveConversion;
+            units::radian_t             m_angleConversion;
     };
-
 }

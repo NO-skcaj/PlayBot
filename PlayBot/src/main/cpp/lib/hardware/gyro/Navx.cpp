@@ -1,12 +1,12 @@
 #include "lib/hardware/gyro/Navx.h"
+
 #include <frc/smartdashboard/SmartDashboard.h>
 
 using namespace hardware::gyro;
 
-
 frc::Rotation3d Navx::GetRotation()
 {
-        return m_gyro.GetRotation3d() + m_offset;
+    return m_gyro.GetRotation3d() + m_offset;
 }
 
 frc::Rotation3d Navx::GetOffset()

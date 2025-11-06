@@ -1,5 +1,6 @@
 #pragma once
 
+#pragma region Includes
 #include <functional>
 
 #include <frc2/command/Command.h>
@@ -12,15 +13,12 @@
 #include <frc/geometry/Pose2d.h>
 #include <frc/geometry/Transform2d.h>
 
-#include "subsystem/Swerve.h"
-#include "subsystem/Volcano.h"
+#include "subsystem/Chassis.h"
 #include "subsystem/Gyro.h"
 
 #include "Constants.h"
+#pragma endregion
 
-// TODO: Separate Drive and Volcano commands into their own files
-
-#pragma region Drive Commands
 #pragma region ChassisZeroHeading
 /// @brief Creates a command to zero the heading of the gyro.
 /// @param gyro A pointer to the Gyro subsystem.
@@ -43,7 +41,7 @@ inline frc2::CommandPtr ChassisZeroHeading(Gyro* gyro)
 ///  @param swerve A pointer to the Swerve subsystem.
 ///  @param chassisSpeedsSupplier A function that supplies the desired chassis speeds.
 ///  @return A CommandPtr that executes the chassis drive functionality.
-inline frc2::CommandPtr ChassisDrive(Swerve* swerve, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier)
+inline frc2::CommandPtr ChassisDrive(Chassis* swerve, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier)
 {
     // Create and return a FunctionalCommand that drives the chassis
     return frc2::FunctionalCommand{
@@ -60,7 +58,7 @@ inline frc2::CommandPtr ChassisDrive(Swerve* swerve, std::function<frc::ChassisS
 /// @brief Creates a command to flip the field centricity of the Swerve.
 /// @param swerve A pointer to the Swerve subsystem. 
 /// @return A CommandPtr that flips the field centricity.
-inline frc2::CommandPtr FlipFieldCentricity(Swerve* swerve)
+inline frc2::CommandPtr FlipFieldCentricity(Chassis* swerve)
 {
     // Create and return a FunctionalCommand that flips the field centricity
     return frc2::FunctionalCommand{
@@ -78,7 +76,7 @@ inline frc2::CommandPtr FlipFieldCentricity(Swerve* swerve)
 /// @param swerve A pointer to the Swerve subsystem.
 /// @param CommandName The name of the command or path to follow.
 /// @return A CommandPtr that drives the chassis to the specified pose.
-inline frc2::CommandPtr ChassisDrivePose(Swerve* swerve, std::string CommandName)
+inline frc2::CommandPtr ChassisDrivePose(Chassis* swerve, std::string CommandName)
 {
     //return AutoBuilder::followPath(PathPlannerPath::fromPathFile(CommandName));
 
@@ -92,7 +90,7 @@ inline frc2::CommandPtr ChassisDrivePose(Swerve* swerve, std::string CommandName
 /// @param swerve A pointer to the Swerve subsystem.
 /// @param targetPose The target pose to drive to. End goal state relative to the origin, blue alliance side.
 /// @return A CommandPtr that drives the chassis to the specified pose.
-inline frc2::CommandPtr ChassisDrivePose(Swerve* swerve, frc::Pose2d targetPose)
+inline frc2::CommandPtr ChassisDrivePose(Chassis* swerve, frc::Pose2d targetPose)
 {
     // return AutoBuilder::pathfindToPose(targetPose, constants::PathPlanner::Constraints);
 
@@ -101,7 +99,7 @@ inline frc2::CommandPtr ChassisDrivePose(Swerve* swerve, frc::Pose2d targetPose)
 }
 #pragma endregion
 
-#pragma endregion AlignToNearestTag
+#pragma region AlignToNearestTag
 // // This command will align the robot to the nearest AprilTag
 // // It will use the AprilTag's pose to determine the target position and rotation
 // // The robot will drive towards the target position and rotate to face the target rotation
@@ -120,60 +118,4 @@ inline frc2::CommandPtr ChassisDrivePose(Swerve* swerve, frc::Pose2d targetPose)
 
 //     return ChassisDrivePose(getTargetWithOffset(PhotonVision::GetInstance()->GetNearestTag(), targetOffset));
 // }
-#pragma endregion
-#pragma endregion
-
-#pragma region Valcano Commands
-#pragma region VolcanoFlywheelOn
-/// @brief Creates a command to turn the volcano flywheel on.
-/// @param volcano A pointer to the Volcano subsystem.
-/// @return A CommandPtr that turns the flywheel on.
-/// TODO: Need to be able to set the flywheel speed.
-inline frc2::CommandPtr VolcanoFlywheelOn(Volcano* volcano)
-{
-    // Create and return a FunctionalCommand that turns the flywheel on
-    return frc2::FunctionalCommand{
-        []        ()                { },                             // Initialization function (runs once when the command starts)
-        [volcano] ()                { volcano->SetFlywheel(true); }, // Execution function (runs repeatedly while the command is active)
-        []        (bool interupted) { },                             // End function (runs once when the command ends, either interrupted or completed)
-        []        ()                { return true; },                // IsFinished function (determines when the command should end)
-        { volcano }                                                  // Requirements (subsystems required by this command)
-    }.ToPtr();
-}
-#pragma endregion
-
-#pragma region VolcanoFlywheelOff
-/// @brief Creates a command to turn the volcano flywheel off.
-/// @param volcano A pointer to the Volcano subsystem.
-/// @return A CommandPtr that turns the flywheel off.
-inline frc2::CommandPtr VolcanoFlywheelOff(Volcano* volcano)
-{
-    // Create and return a FunctionalCommand that turns the flywheel off
-    return frc2::FunctionalCommand{
-        []        ()                { },                              // Initialization function (runs once when the command starts)
-        [volcano] ()                { volcano->SetFlywheel(false); }, // Execution function (runs repeatedly while the command is active)
-        []        (bool interupted) { },                              // End function (runs once when the command ends, either interrupted or completed)
-        []        ()                { return true; },                 // IsFinished function (determines when the command should end)
-        { volcano }                                                   // Requirements (subsystems required by this command)
-    }.ToPtr();
-}
-#pragma endregion
-
-#pragma region VolcanoIndexerControl
-/// @brief Creates a command to control the volcano indexer using a provided getter function.
-/// @param volcano A pointer to the Volcano subsystem.
-/// @param arbitaryGetter A function that returns the desired indexer speed.
-/// @return A CommandPtr that controls the indexer speed.
-inline frc2::CommandPtr VolcanoIndexerControl(Volcano* volcano, std::function<double()> arbitaryGetter)
-{
-    // Create and return a FunctionalCommand that controls the indexer speed
-    return frc2::FunctionalCommand{
-        []                        ()                { },                                        // Initialization function (runs once when the command starts)
-        [volcano, arbitaryGetter] ()                { volcano->SetIndexer(arbitaryGetter()); }, // Execution function (runs repeatedly while the command is active)
-        []                        (bool interupted) { },                                        // End function (runs once when the command ends, either interrupted or completed)
-        []                        ()                { return false; },                          // IsFinished function (determines when the command should end)
-        { volcano }                                                                             // Requirements (subsystems required by this command)
-    }.ToPtr();
-}
-#pragma endregion
 #pragma endregion

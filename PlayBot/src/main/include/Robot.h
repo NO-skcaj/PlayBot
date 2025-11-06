@@ -5,14 +5,18 @@
 
 #include "lib/Logging.h"
 #include "Controller.h"
+#include "RobotContainer.h"
 
-class Robot : public frc::TimedRobot 
+class Robot : public frc::TimedRobot
 {
+    public:
 
-  public:
+        Robot();
 
-    Robot();
-    
-    void RobotPeriodic() override;
-    
+        void RobotPeriodic() override;
+
+    private:
+
+        // Instantiate the Robot container and get a pointer to the class
+        RobotContainer *m_robotContainer = RobotContainer::GetInstance();
 };
