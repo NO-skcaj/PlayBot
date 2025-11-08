@@ -19,12 +19,7 @@ namespace hardware
         {
             public:
 
-                static Navx* GetInstance()
-                {
-                    static Navx  instance;
-                    static Navx* instancePtr = &instance;
-                    return instancePtr;
-                }
+                Navx(); 
 
                 frc::Rotation3d GetRotation() override;                         // Get the rotation of the gyro
                 frc::Rotation3d GetOffset()   override;                         // Get the offset of the gyro
@@ -35,20 +30,15 @@ namespace hardware
 
             protected:
 
-                // Constructor for the NavX class
-                Navx() : m_gyro {studica::AHRS::NavXComType::kMXP_SPI}, m_offset {0_deg, 0_deg, 0_deg}, m_simYaw {0.0}, m_simRate{0.0} 
-                {
-                    
-                }
+                units::radian_t             m_simYaw{0.0};                      // Simulated yaw angle
+
+                units::radians_per_second_t m_simRate{0.0};                     // Simulated rate of change
 
             private:
 
-                studica::AHRS               m_gyro;     // NavX gyro
+                studica::AHRS               m_gyro{studica::AHRS::NavXComType::kMXP_SPI};  // NavX gyro
 
-                frc::Rotation3d             m_offset;   // The offset of the gyro
-
-                units::radian_t             m_simYaw;
-                units::radians_per_second_t m_simRate;
+                frc::Rotation3d             m_offset{0_deg, 0_deg, 0_deg};      // The offset of the gyro
         };
     }
 }

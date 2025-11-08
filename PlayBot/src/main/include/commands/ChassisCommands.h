@@ -13,19 +13,19 @@
 #include "subsystems/Chassis.h"
 #pragma endregion
 
-#pragma region ChassisZeroHeading(Gyro* gyro)
+#pragma region ChassisZeroHeading(Chassis* chassis)
 /// @brief Creates a command to zero the heading of the gyro.
-/// @param gyro A pointer to the Gyro subsystem.
+/// @param chassis A pointer to the chassis subsystem.
 /// @return A CommandPtr that resets the gyro yaw to zero.
-inline frc2::CommandPtr ChassisZeroHeading(Gyro* gyro)
+inline frc2::CommandPtr ChassisZeroHeading(Chassis* chassis)
 {
     // Create and return a FunctionalCommand that resets the gyro yaw
     return frc2::FunctionalCommand{
-        []     ()                { },                   // Initialization function (runs once when the command starts)  
-        []     ()                { },                   // Execution function (runs repeatedly while the command is active)
-        [gyro] (bool interupted) { gyro->ResetYaw(); }, // End function (runs once when the command ends, either interrupted or completed)
-        []     ()                { return true; },      // IsFinished function (determines when the command should end)
-        {}                                              // Requirements (subsystems required by this command)
+        []        ()                { },                         // Initialization function (runs once when the command starts)  
+        []        ()                { },                         // Execution function (runs repeatedly while the command is active)
+        [chassis] (bool interupted) { chassis->ZeroHeading(); }, // End function (runs once when the command ends, either interrupted or completed)
+        []        ()                { return true; },            // IsFinished function (determines when the command should end)
+        {}                                                       // Requirements (subsystems required by this command)
     }.ToPtr();
 }
 #pragma endregion

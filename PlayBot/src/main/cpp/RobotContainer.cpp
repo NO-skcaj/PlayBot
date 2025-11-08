@@ -33,7 +33,7 @@ RobotContainer::RobotContainer()
     // Configure the operator controller
     std::pair<Button, frc2::CommandPtr> runOnceControls[] =
     {
-        {constants::controller::A,           ChassisZeroHeading(Gyro::GetInstance())},
+        {constants::controller::A,           ChassisZeroHeading(&m_chassis)},
         {constants::controller::B,           FlipFieldCentricity(&m_chassis)},
         {constants::controller::RightBumper, VolcanoFlywheelOn(&m_volcano)},
         {constants::controller::LeftBumper,  VolcanoFlywheelOff(&m_volcano)}

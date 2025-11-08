@@ -19,10 +19,10 @@
 
 #include <frc/estimator/SwerveDrivePoseEstimator.h>
 
+#include "lib/hardware/gyro/Navx.h"
 #include "lib/subsystem/SwerveModule.h"
 
 #include "subsystems/Vision.h"
-#include "subsystems/Gyro.h"
 
 #include "Constants.h"
 #pragma endregion
@@ -37,6 +37,8 @@ class Chassis : public frc2::SubsystemBase
     
         void                                     Drive(const frc::ChassisSpeeds& speeds);
     
+        void                                     ZeroHeading();
+        
         void                                     ResetWheelAnglesToZero();
         void                                     ResetDriveEncoders();
     
@@ -87,6 +89,8 @@ class Chassis : public frc2::SubsystemBase
             
         bool m_isFieldRelative = true;
     
+        hardware::gyro::Navx m_gyro;
+
         PhotonVision m_vision
         {
             [this] (frc::Pose2d pose, units::second_t timestamp, Eigen::Matrix<double, 3, 1> stddevs)

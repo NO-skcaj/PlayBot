@@ -4,6 +4,14 @@
 
 using namespace hardware::gyro;
 
+#pragma region Navx
+/// @brief Constructor for the Navx gyro class.
+Navx::Navx()
+{
+    
+}
+#pragma endregion
+
 #pragma region GetRotation
 /// @brief Method to retrieve the current rotation with offset applied.
 /// @return The current rotation with offset applied.

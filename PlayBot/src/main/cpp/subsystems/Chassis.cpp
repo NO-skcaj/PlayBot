@@ -48,7 +48,16 @@ void Chassis::Drive(const frc::ChassisSpeeds& speeds)
 
     // Simulate the gyro in simulation
     if (frc::RobotBase::IsSimulation())
-        Gyro::GetInstance()->SimPeriodic(speeds.omega);
+       m_gyro.SimPeriodic(speeds.omega);
+}
+#pragma endregion
+
+#pragma region ZeroHeading
+/// @brief Method to zero the robot heading.
+void Chassis::ZeroHeading()
+{
+    // Zero the gyro heading
+    m_gyro.ResetYaw();
 }
 #pragma endregion
 
@@ -153,7 +162,7 @@ void Chassis::FlipFieldCentric()
 frc::Rotation2d Chassis::GetHeading()
 {
     // Return the gyro rotation
-    return Gyro::GetInstance()->GetRotation().ToRotation2d();
+    return m_gyro.GetRotation().ToRotation2d();
 }
 #pragma endregion
 
