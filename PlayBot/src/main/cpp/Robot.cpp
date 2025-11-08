@@ -9,8 +9,6 @@ void Robot::RobotInit()
 
     // Report the robot framework usage
     HAL_Report(HALUsageReporting::kResourceType_Framework, HALUsageReporting::kFramework_RobotBuilder);
-
-    RobotContainer::GetInstance();
 }
 #pragma endregion
 

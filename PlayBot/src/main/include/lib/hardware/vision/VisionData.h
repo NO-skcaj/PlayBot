@@ -9,15 +9,15 @@ namespace constants
 {
     namespace vision 
     {
-        constexpr std::string_view        CameraName{"PhotonCamera"};
+        constexpr std::string_view            CameraName{"PhotonCamera"};
 
-        constexpr frc::Transform3d        RobotToCam{frc::Translation3d{0_m, 4_in, 15_in}, frc::Rotation3d{}};
+        constexpr frc::Transform3d            RobotToCam{frc::Translation3d{0_m, 4_in, 15_in}, frc::Rotation3d{}};
 
-        const frc::AprilTagFieldLayout    TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2025ReefscapeAndyMark);
+        const     frc::AprilTagFieldLayout    TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2025ReefscapeAndyMark);
 
-        const Eigen::Matrix<double, 3, 1> SingleTagStdDevs{4, 4, 8};
+        const     Eigen::Matrix<double, 3, 1> SingleTagStdDevs{4, 4, 8};
 
-        const Eigen::Matrix<double, 3, 1> MultiTagStdDevs{0.5, 0.5, 1};
+        const     Eigen::Matrix<double, 3, 1> MultiTagStdDevs{0.5, 0.5, 1};
 
         namespace AprilTagLocations
         {

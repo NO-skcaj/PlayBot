@@ -1,5 +1,6 @@
 #pragma once
 
+#pragma region Includes
 #include <array>
 #include <numbers>
 
@@ -10,6 +11,7 @@
 #include <units/voltage.h>
 
 #include "lib/hardware/motors/Motor.h"
+#pragma endregion
 
 typedef int Button;
 
@@ -19,7 +21,7 @@ namespace constants
     {
         struct SwerveConfiguration
         {
-            // In order to access the motors and encoders, we need their CAN IDs
+            // Motor and encoders CAN IDs
             CANid_t frontLeftDriveCANid;
             CANid_t frontLeftTurnCANid;
             CANid_t frontLeftEncoderCANid;
@@ -47,11 +49,11 @@ namespace constants
             units::radian_t rearRightForwardAngle;
 
             // These make sure to limit how fast the robot can go
-            units::meters_per_second_t maxSpeed;
+            units::meters_per_second_t  maxSpeed;
             units::radians_per_second_t maxAngularVelocity;
 
             // Conversion factors for the motors from encoders to actual movement
-            units::meter_t driveConversion;
+            units::meter_t  driveConversion;
             units::radian_t angleConversion;
 
             // The physical dimensions of the robot
@@ -62,25 +64,27 @@ namespace constants
         constexpr SwerveConfiguration RobotSwerveConfig
         {
             // CAN IDs
-            1, 2, 11, // Front Left Drive,  Turn, Encoder
-            3, 4, 12, // Front Right Drive, Turn, Encoder
-            5, 6, 13, // Back Left Drive,   Turn, Encoder
-            7, 8, 14, // Back Right Drive,  Turn, Encoder
+            1, 2, 11,  // Front Left Drive,  Turn, Encoder
+            3, 4, 12,  // Front Right Drive, Turn, Encoder
+            5, 6, 13,  // Back Left Drive,   Turn, Encoder
+            7, 8, 14,  // Back Right Drive,  Turn, Encoder
 
             // Drive Motor Config
             hardware::motor::MotorConfiguration
             {
-                40_A, true,
-                0.1, 0.02, 0.0,
-                0.0, 0.0, 0.0
+                40_A,            // Current Limit
+                true,            // Brake Mode
+                0.1, 0.02, 0.0,  // P, I , D
+                0.0, 0.0, 0.0    // S, V, A
             },
 
             // Turn Motor Config
             hardware::motor::MotorConfiguration
             {
-                30_A, true,
-                1.0, 0.0, 0.2,
-                0.0, 0.0, 0.0
+                30_A,           // Current Limit
+                true,           // Brake Mode
+                1.0, 0.0, 0.2,  // P, I , D
+                0.0, 0.0, 0.0   // S, V, A
             },
 
             // Forward Angles
@@ -89,9 +93,8 @@ namespace constants
             units::radian_t{-0.174561 * 2 * std::numbers::pi},
             units::radian_t{ 0.268555 * 2 * std::numbers::pi},
 
-            // Max Speeds
-            4_mps,
-            units::radians_per_second_t{2 * std::numbers::pi},     // 1 rotation per second
+            4_mps,                                                 // Max Speed 
+            units::radians_per_second_t{2 * std::numbers::pi},     // Max Angular Velocity
 
             units::meter_t{(0.0098022 * std::numbers::pi) / 6.75}, // Drive Conversion
             units::radian_t{(2 * std::numbers::pi) / 21.5},        // Angle Conversion
@@ -108,7 +111,7 @@ namespace constants
         {
             // CAN IDs
             CANid_t                             flywheelMotorCANid;
-            std::array<CANid_t, 3>              indexerMotors;
+            std::array<CANid_t, 3>              indexerMotorsCANid;
 
             // Motor Configurations
             hardware::motor::MotorConfiguration flywheelMotorConfig;
@@ -128,17 +131,19 @@ namespace constants
             // Flywheel Motor Config, do not use PIDSVA, use voltage
             hardware::motor::MotorConfiguration
             {
-                30_A, false,
-                0.0, 0.0, 0.0, // PID
-                0.0, 0.2, 0.0  // SVA (Feed forward voltage)
+                30_A,           // Current Limit
+                false,          // Brake Mode
+                0.0, 0.0, 0.0,  // P, I , D
+                0.0, 0.2, 0.0   // S, V, A
             },
 
             // Indexer Motors Config
             hardware::motor::MotorConfiguration
             {
-                30_A, true,
-                1.0, 0.0, 0.0, // PID
-                0.0, 0.0, 0.0  // SVA (Feed forward voltage)
+                30_A,           // Current Limit
+                true,           // Brake Mode
+                1.0, 0.0, 0.0,  // P, I , D
+                0.0, 0.0, 0.0   // S, V, A
             },
 
             // Flywheel Voltages
@@ -150,7 +155,7 @@ namespace constants
     namespace controller
     {
         // Drive Input Configurations
-        constexpr int    DrivePort           = 0;
+        constexpr int    DrivePort           =    0;
 
         constexpr double TranslationDeadZone = 0.01;
         constexpr double RotateDeadZone      = 0.01;

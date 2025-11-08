@@ -1,13 +1,13 @@
 #pragma once
 
-#include <frc2/command/SubsystemBase.h>
-
+#pragma region Includes
 #include <wpi/array.h>
-#include <units/angle.h>
 
 #include <networktables/NetworkTableInstance.h>
 #include <networktables/StructArrayTopic.h>
 #include <networktables/StructTopic.h>
+
+#include <frc2/command/SubsystemBase.h>
 
 #include <frc/geometry/Rotation2d.h>
 #include <frc/geometry/Translation2d.h>
@@ -25,187 +25,91 @@
 #include "subsystems/Gyro.h"
 
 #include "Constants.h"
+#pragma endregion
 
 class Chassis : public frc2::SubsystemBase
 {
     public:
+
+        explicit                                 Chassis();
     
-        static Chassis* GetInstance()
+        void                                     Periodic() override;
+    
+        void                                     Drive(const frc::ChassisSpeeds& speeds);
+    
+        void                                     ResetWheelAnglesToZero();
+        void                                     ResetDriveEncoders();
+    
+        wpi::array<frc::SwerveModuleState, 4>    GetModuleStates();
+        std::array<frc::SwerveModulePosition, 4> GetModulePositions();
+    
+        void                                     FlipFieldCentric();
+
+        frc::Rotation2d                          GetHeading();
+        frc::Pose2d                              GetPose();
+    
+    private:
+    
+        void OdometryPeriodic();
+        
+        // Swerve module order for kinematics calculations
+        //
+        //         Front          Translation2d Coordinates
+        //   FL +----------+ FR              ^ X
+        //      | 0      1 |                 |
+        //      |          |            Y    |
+        //      |          |          <------+-------
+        //      | 2      3 |                 |
+        //   RL +----------+ RR              |
+        std::array<subsystem::SwerveModule, 4> m_swerveModules
         {
-            static Chassis instance;
-            static Chassis* instancePtr = &instance;
-            return instancePtr;
-        }
+            subsystem::SwerveModule{constants::swerve::RobotSwerveConfig.frontLeftDriveCANid,  constants::swerve::RobotSwerveConfig.frontLeftTurnCANid,  constants::swerve::RobotSwerveConfig.frontLeftEncoderCANid,  constants::swerve::RobotSwerveConfig.driveMotorConfig, constants::swerve::RobotSwerveConfig.turnMotorConfig, constants::swerve::RobotSwerveConfig.driveConversion, constants::swerve::RobotSwerveConfig.angleConversion},
+            subsystem::SwerveModule{constants::swerve::RobotSwerveConfig.frontRightDriveCANid, constants::swerve::RobotSwerveConfig.frontRightTurnCANid, constants::swerve::RobotSwerveConfig.frontRightEncoderCANid, constants::swerve::RobotSwerveConfig.driveMotorConfig, constants::swerve::RobotSwerveConfig.turnMotorConfig, constants::swerve::RobotSwerveConfig.driveConversion, constants::swerve::RobotSwerveConfig.angleConversion},
+            subsystem::SwerveModule{constants::swerve::RobotSwerveConfig.backLeftDriveCANid,   constants::swerve::RobotSwerveConfig.backLeftTurnCANid,   constants::swerve::RobotSwerveConfig.backLeftEncoderCANid,   constants::swerve::RobotSwerveConfig.driveMotorConfig, constants::swerve::RobotSwerveConfig.turnMotorConfig, constants::swerve::RobotSwerveConfig.driveConversion, constants::swerve::RobotSwerveConfig.angleConversion},
+            subsystem::SwerveModule{constants::swerve::RobotSwerveConfig.backRightDriveCANid,  constants::swerve::RobotSwerveConfig.backRightTurnCANid,  constants::swerve::RobotSwerveConfig.backRightEncoderCANid,  constants::swerve::RobotSwerveConfig.driveMotorConfig, constants::swerve::RobotSwerveConfig.turnMotorConfig, constants::swerve::RobotSwerveConfig.driveConversion, constants::swerve::RobotSwerveConfig.angleConversion}
+        };
 
-        inline void Drive(frc::ChassisSpeeds speeds)
+        frc::SwerveDriveKinematics<4> m_kinematics
         {
-            m_loggedDesiredSpeedsPublisher.Set(speeds);
+            frc::Translation2d{+constants::swerve::RobotSwerveConfig.wheelBase / 2, +constants::swerve::RobotSwerveConfig.trackWidth / 2}, // Front Left
+            frc::Translation2d{+constants::swerve::RobotSwerveConfig.wheelBase / 2, -constants::swerve::RobotSwerveConfig.trackWidth / 2}, // Front Right
+            frc::Translation2d{-constants::swerve::RobotSwerveConfig.wheelBase / 2, +constants::swerve::RobotSwerveConfig.trackWidth / 2}, // Back Left
+            frc::Translation2d{-constants::swerve::RobotSwerveConfig.wheelBase / 2, -constants::swerve::RobotSwerveConfig.trackWidth / 2}  // Back Right
+        };
 
-            // Set the module states
-            auto m_desiredStates = m_kinematics.ToSwerveModuleStates(m_isFieldRelative ? 
-                                      frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
-
-            // Set the desired state for each swerve module
-            m_chassisModules[0].SetDesiredState(m_desiredStates[0]);
-            m_chassisModules[1].SetDesiredState(m_desiredStates[1]);
-            m_chassisModules[2].SetDesiredState(m_desiredStates[2]);
-            m_chassisModules[3].SetDesiredState(m_desiredStates[3]);
-
-            if (frc::RobotBase::IsSimulation())
-                Gyro::GetInstance()->SimPeriodic(speeds.omega);
-        }
-
-        inline void Periodic() override
+        frc::SwerveDrivePoseEstimator<4> m_poseEstimator
         {
-            // This method will be called once per scheduler run
-            m_loggedModuleStatePublisher.Set(wpi::array<frc::SwerveModuleState, 4>
-                {
-                    m_chassisModules[0].GetState(),
-                    m_chassisModules[1].GetState(),
-                    m_chassisModules[2].GetState(),
-                    m_chassisModules[3].GetState()
-                }
-            );
-
-            m_loggedPosePublisher.Set(GetPose2d());
-
-            OdometryPeriodic();
-        }
-
-        inline void ResetWheelAnglesToZero()
+            m_kinematics,                                 // Kinematics object
+            frc::Rotation2d(),                            // Initial gyro angle
+            std::array<frc::SwerveModulePosition, 4>{},   // Initial module positions
+            frc::Pose2d()                                 // Initial pose
+        };   
+            
+        bool m_isFieldRelative = true;
+    
+        PhotonVision m_vision
         {
-            // Set the swerve wheel angles to zero
-            m_chassisModules[0].SetWheelAngleToForward(constants::swerve::RobotSwerveConfig.frontLeftForwardAngle);
-            m_chassisModules[1].SetWheelAngleToForward(constants::swerve::RobotSwerveConfig.frontRightForwardAngle);
-            m_chassisModules[2].SetWheelAngleToForward(constants::swerve::RobotSwerveConfig.rearLeftForwardAngle);
-            m_chassisModules[3].SetWheelAngleToForward(constants::swerve::RobotSwerveConfig.rearRightForwardAngle);
-        }
-
-        inline void ResetDriveEncoders()
-        {
-            // Reset the swerve motor encoders
-            m_chassisModules[0].ResetDriveEncoder();
-            m_chassisModules[1].ResetDriveEncoder();
-            m_chassisModules[2].ResetDriveEncoder();
-            m_chassisModules[3].ResetDriveEncoder();
-        }
-
-        inline wpi::array<frc::SwerveModuleState, 4> GetModuleStates()
-        {
-            // Return the swerve module states
-            std::array<frc::SwerveModuleState, 4> states =
+            [this] (frc::Pose2d pose, units::second_t timestamp, Eigen::Matrix<double, 3, 1> stddevs)
             {
-                m_chassisModules[0].GetState(),
-                m_chassisModules[1].GetState(),
-                m_chassisModules[2].GetState(),
-                m_chassisModules[3].GetState()
-            };
-
-            if (frc::RobotBase::IsSimulation())
-            {
-                for (auto state : states)
-                {
-                    state = {state.speed / constants::swerve::RobotSwerveConfig.driveConversion.value(), 
-                             state.angle / constants::swerve::RobotSwerveConfig.angleConversion.value()};
-                }
+               m_poseEstimator.AddVisionMeasurement(pose, timestamp, {stddevs[0], stddevs[1], stddevs[2]});
             }
-
-            return states;
-        }
-
-        std::array<frc::SwerveModulePosition, 4> GetModulePositions()
+        };
+    
+        nt::StructArrayPublisher<frc::SwerveModuleState> m_loggedModuleStatePublisher
         {
-            // Return the swerve module states
-            std::array<frc::SwerveModulePosition, 4> positions =
-            {
-                m_chassisModules[0].GetPosition(),
-                m_chassisModules[1].GetPosition(),
-                m_chassisModules[2].GetPosition(),
-                m_chassisModules[3].GetPosition()
-            };
+            // Publish the module states to NetworkTables
+            nt::NetworkTableInstance::GetDefault().GetStructArrayTopic<frc::SwerveModuleState>("/Data/SwerveStates").Publish()
+        };
 
-            if (frc::RobotBase::IsSimulation())
-            {
-                for (auto position : positions)
-                {
-                    position = {position.distance / constants::swerve::RobotSwerveConfig.driveConversion.value(), 
-                                position.angle    / constants::swerve::RobotSwerveConfig.angleConversion.value()};
-                }
-            }
-
-            return positions;
-        }
-
-        inline void FlipFieldCentric()
+        nt::StructPublisher<frc::Pose2d>  m_loggedPosePublisher
         {
-            m_isFieldRelative = !m_isFieldRelative;
-        }
+            // Publish the robot pose to NetworkTables
+            nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::Pose2d>("/Data/CurrentPose").Publish()
+        };
 
-        frc::Rotation2d GetHeading()
+        nt::StructPublisher<frc::ChassisSpeeds> m_loggedDesiredSpeedsPublisher
         {
-            return Gyro::GetInstance()->GetRotation().ToRotation2d();
-        }
-
-        frc::Pose2d GetPose2d()
-        {
-            return m_poseEstimator.GetEstimatedPosition();
-        }
-
-    protected:
-
-        explicit Chassis() :
-            m_kinematics
-            {
-                frc::Translation2d{+constants::swerve::RobotSwerveConfig.wheelBase / 2, +constants::swerve::RobotSwerveConfig.trackWidth / 2}, // Front Left
-                frc::Translation2d{+constants::swerve::RobotSwerveConfig.wheelBase / 2, -constants::swerve::RobotSwerveConfig.trackWidth / 2}, // Front Right
-                frc::Translation2d{-constants::swerve::RobotSwerveConfig.wheelBase / 2, +constants::swerve::RobotSwerveConfig.trackWidth / 2}, // Back Left
-                frc::Translation2d{-constants::swerve::RobotSwerveConfig.wheelBase / 2, -constants::swerve::RobotSwerveConfig.trackWidth / 2}  // Back Right
-            },
-            m_chassisModules
-            {
-                subsystem::SwerveModule{constants::swerve::RobotSwerveConfig.frontLeftDriveCANid,  constants::swerve::RobotSwerveConfig.frontLeftTurnCANid,  constants::swerve::RobotSwerveConfig.frontLeftEncoderCANid,  constants::swerve::RobotSwerveConfig.driveMotorConfig, constants::swerve::RobotSwerveConfig.turnMotorConfig, constants::swerve::RobotSwerveConfig.driveConversion, constants::swerve::RobotSwerveConfig.angleConversion},
-                subsystem::SwerveModule{constants::swerve::RobotSwerveConfig.frontRightDriveCANid, constants::swerve::RobotSwerveConfig.frontRightTurnCANid, constants::swerve::RobotSwerveConfig.frontRightEncoderCANid, constants::swerve::RobotSwerveConfig.driveMotorConfig, constants::swerve::RobotSwerveConfig.turnMotorConfig, constants::swerve::RobotSwerveConfig.driveConversion, constants::swerve::RobotSwerveConfig.angleConversion},
-                subsystem::SwerveModule{constants::swerve::RobotSwerveConfig.backLeftDriveCANid,   constants::swerve::RobotSwerveConfig.backLeftTurnCANid,   constants::swerve::RobotSwerveConfig.backLeftEncoderCANid,   constants::swerve::RobotSwerveConfig.driveMotorConfig, constants::swerve::RobotSwerveConfig.turnMotorConfig, constants::swerve::RobotSwerveConfig.driveConversion, constants::swerve::RobotSwerveConfig.angleConversion},
-                subsystem::SwerveModule{constants::swerve::RobotSwerveConfig.backRightDriveCANid,  constants::swerve::RobotSwerveConfig.backRightTurnCANid,  constants::swerve::RobotSwerveConfig.backRightEncoderCANid,  constants::swerve::RobotSwerveConfig.driveMotorConfig, constants::swerve::RobotSwerveConfig.turnMotorConfig, constants::swerve::RobotSwerveConfig.driveConversion, constants::swerve::RobotSwerveConfig.angleConversion}
-            },
-            m_poseEstimator{m_kinematics, frc::Rotation2d(), std::array<frc::SwerveModulePosition, 4>{}, frc::Pose2d()},
-            m_isFieldRelative{true},
-            m_vision
-            {
-                [this] (frc::Pose2d pose, units::second_t timestamp, Eigen::Matrix<double, 3, 1> stddevs)
-                {
-                       m_poseEstimator.AddVisionMeasurement(pose, timestamp, {stddevs[0], stddevs[1], stddevs[2]});
-                }
-            },
-            m_loggedModuleStatePublisher{nt::NetworkTableInstance::GetDefault().GetStructArrayTopic<frc::SwerveModuleState>("/Data/SwerveStates").Publish()},
-            m_loggedPosePublisher{nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::Pose2d>("/Data/CurrentPose").Publish()},
-            m_loggedDesiredSpeedsPublisher{nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::ChassisSpeeds>("/Data/DesiredSpeeds").Publish()}
-        {
-            // Set the swerve modules to their forward angles
-            ResetWheelAnglesToZero();
-        }
-
-        void OdometryPeriodic()
-        {
-            // Update the pose estimator
-            m_poseEstimator.Update(
-                GetHeading(),
-                GetModulePositions()
-            );
-
-            // This ALSO updates the pose estimator with vision stuff as well as updating photonvisions internal estimators and etc
-            m_vision.Periodic();
-        }
-
-        frc::SwerveDriveKinematics<4>                    m_kinematics;
-        std::array<subsystem::SwerveModule, 4>           m_chassisModules;
-
-        frc::SwerveDrivePoseEstimator<4>                 m_poseEstimator;   
-        bool                                             m_isFieldRelative;
-
-        PhotonVision                                     m_vision;
-
-        nt::StructArrayPublisher<frc::SwerveModuleState> m_loggedModuleStatePublisher;
-        nt::StructPublisher<frc::Pose2d>                 m_loggedPosePublisher;
-        nt::StructPublisher<frc::ChassisSpeeds>          m_loggedDesiredSpeedsPublisher;
+            // Publish the desired chassis speeds to NetworkTables
+            nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::ChassisSpeeds>("/Data/DesiredSpeeds").Publish()
+        };
 };

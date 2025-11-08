@@ -22,21 +22,21 @@ RobotContainer *RobotContainer::GetInstance()
 
 #pragma region RobotContainer
 /// @brief Method to configure the robot and SmartDashboard configuration.
-RobotContainer::RobotContainer() : m_chassis{Chassis::GetInstance()}, m_volcano{Volcano::GetInstance()}
+RobotContainer::RobotContainer()
 {
     // Configure the chassis default command
-    m_chassis->SetDefaultCommand(ChassisDrive(m_chassis, GetChassisSpeeds()));
+    m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetChassisSpeeds()));
 
     // Configure the volcano default command
-    m_volcano->SetDefaultCommand(VolcanoIndexerControl(m_volcano, [this] { return m_flywheelLimiter.Calculate(frc::ApplyDeadband(m_driveController.GetRightTriggerAxis(), constants::controller::FlywheelDeadZone)).value(); } ));
+    m_volcano.SetDefaultCommand(VolcanoIndexerControl(&m_volcano, [this] { return m_flywheelLimiter.Calculate(frc::ApplyDeadband(m_driveController.GetRightTriggerAxis(), constants::controller::FlywheelDeadZone)).value(); } ));
 
     // Configure the operator controller
     std::pair<Button, frc2::CommandPtr> runOnceControls[] =
     {
         {constants::controller::A,           ChassisZeroHeading(Gyro::GetInstance())},
-        {constants::controller::B,           FlipFieldCentricity(m_chassis)},
-        {constants::controller::RightBumper, VolcanoFlywheelOn(m_volcano)},
-        {constants::controller::LeftBumper,  VolcanoFlywheelOff(m_volcano)}
+        {constants::controller::B,           FlipFieldCentricity(&m_chassis)},
+        {constants::controller::RightBumper, VolcanoFlywheelOn(&m_volcano)},
+        {constants::controller::LeftBumper,  VolcanoFlywheelOff(&m_volcano)}
     };
 
     // Configure the run-once controls
