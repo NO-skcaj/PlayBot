@@ -117,5 +117,6 @@
     "cinttypes": "cpp",
     "*.inc": "cpp"
   },
-  "C_Cpp.errorSquiggles": "disabled"
+  "C_Cpp.errorSquiggles": "disabled",
+  "wpilib.selectDefaultSimulateExtension": false
 }

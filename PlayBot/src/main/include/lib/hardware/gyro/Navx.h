@@ -10,57 +10,35 @@
 #include <units/angle.h>
 #include <units/angular_velocity.h>
 
-
 namespace hardware
 {
-
-namespace gyro
-{
-
-    // NavX class to support the NavX gyro
-    class Navx : public GyroBase
+    namespace gyro
     {
-        public:
+        // NavX class to support the NavX gyro
+        class Navx : public GyroBase
+        {
+            public:
 
-            static Navx* GetInstance()
-            {
-                static Navx instance;
-                static Navx* instancePtr = &instance;
-                return instancePtr;
-            }
+                Navx(); 
 
-            // Get the rotation of the gyro
-            frc::Rotation3d GetRotation() override;
+                frc::Rotation3d GetRotation() override;                         // Get the rotation of the gyro
+                frc::Rotation3d GetOffset()   override;                         // Get the offset of the gyro
+                void            ResetYaw()    override;                         // Reset the yaw of the gyro
 
-            // Get the offset of the gyro
-            frc::Rotation3d GetOffset() override;
+                void            SetOffset(frc::Rotation3d offset);              // Set the offset of the gyro
+                void            SimPeriodic(units::radians_per_second_t rate);  // updates in sim
 
-            // Reset the yaw of the gyro
-            void ResetYaw() override;
+            protected:
 
-            // Set the offset of the gyro
-            void SetOffset(frc::Rotation3d offset);
+                units::radian_t             m_simYaw{0.0};                      // Simulated yaw angle
 
-            void SimPeriodic(units::radians_per_second_t rate); // updates in sim
+                units::radians_per_second_t m_simRate{0.0};                     // Simulated rate of change
 
-        protected:
-            // Constructor for the NavX class
-            Navx() : m_gyro   {studica::AHRS::NavXComType::kMXP_SPI},
-                    m_offset {0_deg, 0_deg, 0_deg},
-                    m_simYaw {0.0},
-                    m_simRate{0.0} 
-            {}
+            private:
 
-        private:
+                studica::AHRS               m_gyro{studica::AHRS::NavXComType::kMXP_SPI};  // NavX gyro
 
-            studica::AHRS m_gyro;     // NavX gyro
-
-            frc::Rotation3d m_offset; // The offset of the gyro
-
-            units::radian_t             m_simYaw;
-            units::radians_per_second_t m_simRate;
-    };
-
-}
-
+                frc::Rotation3d             m_offset{0_deg, 0_deg, 0_deg};      // The offset of the gyro
+        };
+    }
 }

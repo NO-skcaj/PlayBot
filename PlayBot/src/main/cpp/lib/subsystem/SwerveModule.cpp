@@ -2,6 +2,7 @@
 
 using namespace subsystem;
 
+#pragma region SwerveModule
 /// @brief Class constructor for the SwerveModule class.
 /// @param driveMotorCanId The CAN ID for the swerve module drive motor.
 /// @param angleMotorCanId The CAN ID for the swerve module angle motor.
@@ -13,9 +14,8 @@ using namespace subsystem;
 SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId, 
                            hardware::motor::MotorConfiguration turnConfig, hardware::motor::MotorConfiguration driveConfig,
                            units::meter_t  driveMotorConversion,
-                           units::radian_t angleMotorConversion)
-
-    :   m_driveMotor          {driveMotorCanId, driveConfig, frc::DCMotor::KrakenX60()}, // Those two strange numbers are the MOI or moments of inertias. Its for simulation, and its not accurate of the actual bot
+                           units::radian_t angleMotorConversion) :
+        m_driveMotor          {driveMotorCanId, driveConfig, frc::DCMotor::KrakenX60()}, // The MOI or moments of inertias for simulation, and its not accurate of the actual robot
         m_angleMotor          {angleMotorCanId, turnConfig,  frc::DCMotor::NEO()},
         m_angleAbsoluteEncoder{angleEncoderCanId},
         m_driveConversion{frc::RobotBase::IsSimulation() ? 1_m   : driveMotorConversion},
@@ -25,7 +25,9 @@ SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEn
     // Ensure the drive motor encoder is reset to zero
     m_driveMotor.SetReferenceState(0_tr);
 }
+#pragma endregion
 
+#pragma region SetDesiredState
 /// @brief Method to set the swerve module state to the desired state.
 /// @param desiredState The desired swerve module velocity and angle.
 /// @param description String to show the module state on the SmartDashboard.
@@ -43,10 +45,13 @@ void SwerveModule::SetDesiredState(frc::SwerveModuleState& desiredState)
         m_angleMotor.SimPeriodic();
     }
 
+    // Set the motor reference states
     m_driveMotor.SetReferenceState(units::turns_per_second_t(desiredState.speed.value() / m_driveConversion.value()));
-    m_angleMotor.SetReferenceState(units::turn_t(desiredState.angle.Radians().value() / m_angleConversion.value()));
+    m_angleMotor.SetReferenceState(units::turn_t(desiredState.angle.Radians().value()   / m_angleConversion.value()));
 }
+#pragma endregion
 
+#pragma region GetState
 /// @brief  Method to retrieve the swerve module state.
 /// @return The swerve module speed and angle state.
 frc::SwerveModuleState SwerveModule::GetState()
@@ -58,7 +63,9 @@ frc::SwerveModuleState SwerveModule::GetState()
     // Return the swerve module state
     return {driveVelocity, anglePosition};
 }
+#pragma endregion
 
+#pragma region GetPosition
 /// @brief Method to retrieve the swerve module position.
 frc::SwerveModulePosition SwerveModule::GetPosition()
 {
@@ -72,18 +79,25 @@ frc::SwerveModulePosition SwerveModule::GetPosition()
     // Return the swerve module position
     return {drivePosition, anglePosition};
 }
+#pragma endregion
 
+#pragma region ResetDriveEncoder
 // Reset the drive encoder position.
 void SwerveModule::ResetDriveEncoder()
 {
+    // Ensure the drive motor encoder is reset to zero
     m_driveMotor.OffsetEncoder(0_tr);
 }
+#pragma endregion
 
+#pragma region SetWheelAngleToForward
 /// @brief Method to set the swerve wheel encoder to the forward angle.
 /// @param forwardAngle The absolute angle for the forward direction.
 void SwerveModule::SetWheelAngleToForward(units::angle::radian_t forwardAngle)
 {
-    if (frc::RobotBase::IsSimulation()) return;
+    // Do not run this method in simulation
+    if (frc::RobotBase::IsSimulation()) 
+        return;
 
     // Ensure the drive motor encoder is reset to zero
     m_driveMotor.SetReferenceState(0_tr);
@@ -94,7 +108,9 @@ void SwerveModule::SetWheelAngleToForward(units::angle::radian_t forwardAngle)
     // Set the motor angle to the forward direction
     m_angleMotor.SetReferenceState(0.0_tr);
 }
+#pragma endregion
 
+#pragma region GetAbsoluteEncoderAngle
 /// @brief Method to read the absolute encode in radians.
 /// @return The absolute angle value in radians.
 units::angle::radian_t SwerveModule::GetAbsoluteEncoderAngle()
@@ -105,3 +121,4 @@ units::angle::radian_t SwerveModule::GetAbsoluteEncoderAngle()
     // To convert to radians
     return encoderValue * (2.0_rad * std::numbers::pi);
 }
+#pragma endregion

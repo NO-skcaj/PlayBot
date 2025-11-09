@@ -2,7 +2,6 @@
 
 #include "lib/hardware/vision/PhotonVision.h"
 
-
 // class Vision : public hardware::vision::PhotonVision, public frc2::SubsystemBase
 // {
 //     public:

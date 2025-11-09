@@ -6,51 +6,47 @@
 
 #include <frc/filter/Debouncer.h>
 
-
 namespace hardware
 {
-
-namespace sensor
-{
-
-    class DigitalInput : public Sensor<bool>
+    namespace sensor
     {
-        public:
-            DigitalInput(int CanId, units::second_t toleranceZone = 0_s)
-                : m_sensor{CanId},
-                  m_filter{toleranceZone, frc::Debouncer::DebounceType::kBoth}
-            {}
+        class DigitalInput : public Sensor<bool>
+        {
+            public:
 
-            bool operator==(bool operand) override
-            {
-                return m_sensor.Get() == operand;
-            }
+                DigitalInput(int CanId, units::second_t toleranceZone = 0_s)
+                    : m_sensor{CanId},
+                      m_filter{toleranceZone, frc::Debouncer::DebounceType::kBoth}
+                {
 
-            operator bool() override
-            {
-                return m_sensor.Get();
-            }
+                }
 
-            bool Get() override
-            {
-                return m_sensor.Get();
-            }
+                bool operator==(bool operand) override
+                {
+                    return m_sensor.Get() == operand;
+                }
 
-            void Periodic() override
-            {
-                m_value = m_filter.Calculate(m_sensor.Get());
-            }
+                operator bool() override
+                {
+                    return m_sensor.Get();
+                }
+
+                bool Get() override
+                {
+                    return m_sensor.Get();
+                }
+
+                void Periodic() override
+                {
+                    m_value = m_filter.Calculate(m_sensor.Get());
+                }
 
         private:
 
             frc::DigitalInput m_sensor;
+            frc::Debouncer    m_filter;
+            bool              m_value;
 
-            frc::Debouncer m_filter;
-
-            bool m_value;
-
-    };
-
-}
-
+        };
+    }
 }
