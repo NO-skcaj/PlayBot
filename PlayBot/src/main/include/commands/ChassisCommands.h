@@ -94,22 +94,24 @@ inline frc2::CommandPtr FlipFieldCentricity(Chassis* chassis)
 #pragma endregion
 
 #pragma region AlignToNearestTag(Chassis* chassis, frc::Transform2d targetOffset)
-// // This command will align the robot to the nearest AprilTag
-// // It will use the AprilTag's pose to determine the target position and rotation
-// // The robot will drive towards the target position and rotate to face the target rotation
-// inline frc2::CommandPtr AlignToNearestTag(Chassis* chassis, frc::Transform2d targetOffset)
-// {
-//     // This doesn't need to be a variable. When I wrote this, I just really liked using lambdas. Now, it kinda needs to be because its not in its own class
-//     std::function<frc::Pose2d(frc::Pose2d, frc::Transform2d)> getTargetWithOffset = 
-//         [] (frc::Pose2d targetPosition, frc::Transform2d targetOffset)
-//         {
-//             // Rotate offset
-//             return frc::Pose2d{
-//                 targetPosition.X() +                  targetOffset.Translation().X() * std::cos(targetPosition.Rotation().Radians().value()) - targetOffset.Translation().Y() * std::sin(targetPosition.Rotation().Radians().value()),
-//                 targetPosition.Y() +                  targetOffset.Translation().X() * std::sin(targetPosition.Rotation().Radians().value()) + targetOffset.Translation().Y() * std::cos(targetPosition.Rotation().Radians().value()),
-//                 targetPosition.Rotation().Degrees() + targetOffset.Rotation().Degrees()};
-//         };
+// This command will align the robot to the nearest AprilTag
+// It will use the AprilTag's pose to determine the target position and rotation
+// The robot will drive towards the target position and rotate to face the target rotation
+inline frc2::CommandPtr AlignToNearestTag(Chassis* chassis, frc::Transform2d targetOffset)
+{ 
+        frc::Pose2d targetPosition = chassis->GetNearestTag();
 
-//     return ChassisDrivePose(getTargetWithOffset(PhotonVision::GetInstance()->GetNearestTag(), targetOffset));
-// }
+        // Rotate offset
+        frc::Pose2d targetWithOffset{
+            targetPosition.X() + targetOffset.Translation().X() * std::cos(targetPosition.Rotation().Radians().value()) 
+                               - targetOffset.Translation().Y() * std::sin(targetPosition.Rotation().Radians().value()),
+
+            targetPosition.Y() + targetOffset.Translation().X() * std::sin(targetPosition.Rotation().Radians().value()) 
+                               + targetOffset.Translation().Y() * std::cos(targetPosition.Rotation().Radians().value()),
+
+            targetPosition.Rotation().Degrees() + targetOffset.Rotation().Degrees()
+        };
+
+    return ChassisDrivePose(chassis, targetWithOffset);
+}
 #pragma endregion

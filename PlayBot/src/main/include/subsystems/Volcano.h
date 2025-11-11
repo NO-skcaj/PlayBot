@@ -26,17 +26,9 @@ private:
         RUNNING
     };
 
-    hardware::motor::TalonFX  m_flywheelMotor
-    {
-        constants::volcano::volcanoConfig.flywheelMotorCANid, constants::volcano::volcanoConfig.flywheelMotorConfig, frc::DCMotor::Falcon500()
-    };
+    hardware::motor::TalonFX  m_flywheelMotor;
 
-    hardware::motor::SparkMax m_indexerMotors[3]
-    {
-        hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[0], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()},
-        hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[1], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()},
-        hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[2], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()}
-    };
+    hardware::motor::SparkMax m_indexerMotors[3];
 
-    FlywheelState m_flywheelState = FlywheelState::OFF;
+    FlywheelState m_flywheelState;
 };

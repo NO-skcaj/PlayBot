@@ -3,6 +3,17 @@
 #pragma region Volcano
 /// @brief Constructor for the Volcano subsystem.
 Volcano::Volcano()
+    : m_flywheelMotor
+      {
+          constants::volcano::volcanoConfig.flywheelMotorCANid, constants::volcano::volcanoConfig.flywheelMotorConfig, frc::DCMotor::Falcon500()
+      },
+      m_indexerMotors
+      {
+          hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[0], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()},
+          hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[1], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()},
+          hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[2], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()}
+      },
+      m_flywheelState{FlywheelState::OFF}
 {
     // Initialize the flywheel motor to an OFF state
     m_flywheelMotor.SetReferenceState(0_V);

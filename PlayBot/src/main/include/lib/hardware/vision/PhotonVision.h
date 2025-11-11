@@ -38,22 +38,41 @@
 #include <frc/apriltag/AprilTagFieldLayout.h>
 #include <frc/apriltag/AprilTagFields.h>
 
-#include "VisionData.h"
+#include "Constants.h"
+
 
 class PhotonVision
 {
     public:
 
-        PhotonVision(std::function<void(frc::Pose2d, units::second_t, Eigen::Matrix<double, 3, 1>)>
-                estConsumer = [](frc::Pose2d pose, units::second_t timestamp, Eigen::Matrix<double, 3, 1> stddevs) {}) : estConsumer{estConsumer}
+        PhotonVision(
+            std::string_view         cameraName,
+            frc::Transform3d         robotToCamPose,
+            frc::AprilTagFieldLayout tagLayout,
+            Eigen::Matrix<double, 3, 1> singleTagStdDevs,
+            Eigen::Matrix<double, 3, 1> multiTagStdDevs,
+            std::function<void(frc::Pose2d, units::second_t, Eigen::Matrix<double, 3, 1>)> estConsumer
+            )
+            : estConsumer{estConsumer},
+              cameraName{cameraName},
+              tagLayout{tagLayout},
+              photonEstimator{ 
+                tagLayout, 
+                photon::PoseStrategy::MULTI_TAG_PNP_ON_COPROCESSOR, 
+                robotToCamPose
+              },
+              camera{cameraName},
+              singleTagStdDevs{singleTagStdDevs},
+              multiTagStdDevs{multiTagStdDevs}
         {
             photonEstimator.SetMultiTagFallbackStrategy(photon::PoseStrategy::LOWEST_AMBIGUITY);
 
+            // Simulation setup, not really in a working state yet
             if (frc::RobotBase::IsSimulation())
             {
                 visionSim = std::make_unique<photon::VisionSystemSim>("main");
 
-                visionSim->AddAprilTags(constants::vision::TagLayout);
+                visionSim->AddAprilTags(tagLayout);
 
                 cameraProp = std::make_unique<photon::SimCameraProperties>();
 
@@ -65,7 +84,7 @@ class PhotonVision
 
                 cameraSim = std::make_shared<photon::PhotonCameraSim>(&camera, *cameraProp.get());
 
-                visionSim->AddCamera(cameraSim.get(), constants::vision::RobotToCam);
+                visionSim->AddCamera(cameraSim.get(), robotToCamPose);
                 cameraSim->EnableDrawWireframe(true);
             }
         }
@@ -170,14 +189,17 @@ class PhotonVision
 
     private:
 
-        photon::PhotonPoseEstimator photonEstimator
-        {
-            constants::vision::TagLayout,
-            photon::PoseStrategy::MULTI_TAG_PNP_ON_COPROCESSOR,
-            constants::vision::RobotToCam
-        };
+        std::string_view         cameraName;
+        frc::Transform3d         robotToCamPose;
+        frc::AprilTagFieldLayout tagLayout;
 
-        photon::PhotonCamera                         camera{constants::vision::CameraName};
+        photon::PhotonPoseEstimator photonEstimator;
+
+        photon::PhotonCamera camera;
+
+        Eigen::Matrix<double, 3, 1> singleTagStdDevs;
+        Eigen::Matrix<double, 3, 1> multiTagStdDevs;
+
         std::unique_ptr<photon::VisionSystemSim>     visionSim;
         std::unique_ptr<photon::SimCameraProperties> cameraProp;
         std::shared_ptr<photon::PhotonCameraSim>     cameraSim;
