@@ -4,7 +4,6 @@
 
 typedef int CANid_t;
 
- // Basically just to distrubute the Periodic overrideable function
 class Hardware 
 {
     

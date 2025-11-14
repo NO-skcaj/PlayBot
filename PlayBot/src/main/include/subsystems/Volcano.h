@@ -1,6 +1,8 @@
 #include "lib/hardware/motors/TalonFX.h"
 #include "lib/hardware/motors/SparkMax.h"
 
+#include "lib/hardware/sensors/DigitalInput.h"
+
 #include "Constants.h"
 
 class Volcano : public frc2::SubsystemBase
@@ -9,13 +11,15 @@ public:
 
     explicit Volcano();
 
-    // Double tapping either buttons will toggle between RUNNING or IDLE and off, single tap will run/stop based on which button you choose
-    // ex: given its on idle, you press the idle button again and it will turn off
-    // ex: given its off, you press the run (or idle) button and it will turn on to run (or idle) speed
-    // the boolean is an option between running or idle
-    void SetFlywheel(bool isRunning);
+    void SetKicker(bool running);
 
-    void SetIndexer(double speed);
+    void SetIndexers(bool running);
+
+    void SetFlywheel(bool running);
+
+    bool GetKickSensor();
+
+    bool IsFlywheelAtSpeed();
 
 private:
 
@@ -26,17 +30,13 @@ private:
         RUNNING
     };
 
-    hardware::motor::TalonFX  m_flywheelMotor
-    {
-        constants::volcano::volcanoConfig.flywheelMotorCANid, constants::volcano::volcanoConfig.flywheelMotorConfig, frc::DCMotor::Falcon500()
-    };
+    hardware::motor::TalonFX  m_flywheelMotor;
 
-    hardware::motor::SparkMax m_indexerMotors[3]
-    {
-        hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[0], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()},
-        hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[1], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()},
-        hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[2], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()}
-    };
+    hardware::motor::SparkMax m_indexerMotors[2];
 
-    FlywheelState m_flywheelState = FlywheelState::OFF;
+    hardware::motor::SparkMax m_kickMotor;
+
+    hardware::sensor::DigitalInput m_ballSensor;
+
+    FlywheelState m_flywheelState;
 };

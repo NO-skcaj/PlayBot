@@ -2,6 +2,10 @@
 
 #pragma region Includes
 #include <frc2/command/FunctionalCommand.h>
+#include <frc2/command/InstantCommand.h>
+#include <frc2/command/RunCommand.h>
+#include <frc2/command/WaitCommand.h>
+#include <frc2/command/CommandPtr.h>
 
 #include "subsystems/Volcano.h"
 #pragma endregion
@@ -14,13 +18,7 @@
 inline frc2::CommandPtr VolcanoFlywheelOn(Volcano* volcano)
 {
     // Create and return a FunctionalCommand that turns the flywheel on
-    return frc2::FunctionalCommand{
-        []        ()                { },                             // Initialization function (runs once when the command starts)
-        [volcano] ()                { volcano->SetFlywheel(true); }, // Execution function (runs repeatedly while the command is active)
-        []        (bool interupted) { },                             // End function (runs once when the command ends, either interrupted or completed)
-        []        ()                { return true; },                // IsFinished function (determines when the command should end)
-        { volcano }                                                  // Requirements (subsystems required by this command)
-    }.ToPtr();
+    return frc2::InstantCommand{[volcano] () { volcano->SetFlywheel(true); }, { volcano }}.ToPtr();
 }
 #pragma endregion
 
@@ -31,30 +29,74 @@ inline frc2::CommandPtr VolcanoFlywheelOn(Volcano* volcano)
 inline frc2::CommandPtr VolcanoFlywheelOff(Volcano* volcano)
 {
     // Create and return a FunctionalCommand that turns the flywheel off
-    return frc2::FunctionalCommand{
-        []        ()                { },                              // Initialization function (runs once when the command starts)
-        [volcano] ()                { volcano->SetFlywheel(false); }, // Execution function (runs repeatedly while the command is active)
-        []        (bool interupted) { },                              // End function (runs once when the command ends, either interrupted or completed)
-        []        ()                { return true; },                 // IsFinished function (determines when the command should end)
-        { volcano }                                                   // Requirements (subsystems required by this command)
-    }.ToPtr();
+    return frc2::InstantCommand{[volcano] () { volcano->SetFlywheel(false); }, { volcano }}.ToPtr();
 }
 #pragma endregion
 
-#pragma region VolcanoIndexerControl(Volcano* volcano, std::function<double()> speedGetter)
-/// @brief Creates a command to control the volcano indexer using a provided getter function.
+#pragma region VolcanoShootAllBalls(Volcano* volcano)
+/// @brief Creates a command to shoot one ball from the volcano.
 /// @param volcano A pointer to the Volcano subsystem.
-/// @param speedGetter A function that returns the desired indexer speed.
-/// @return A CommandPtr that controls the indexer speed.
-inline frc2::CommandPtr VolcanoIndexerControl(Volcano* volcano, std::function<double()> speedGetter)
+inline frc2::CommandPtr VolcanoShootOneBall(Volcano* volcano)
 {
-    // Create and return a FunctionalCommand that controls the indexer speed
-    return frc2::FunctionalCommand{
-        []                     ()                { },                                     // Initialization function (runs once when the command starts)
-        [volcano, speedGetter] ()                { volcano->SetIndexer(speedGetter()); }, // Execution function (runs repeatedly while the command is active)
-        []                     (bool interupted) { },                                     // End function (runs once when the command ends, either interrupted or completed)
-        []                     ()                { return true; },                        // IsFinished function (determines when the command should end)
-        { volcano }                                                                       // Requirements (subsystems required by this command)
-    }.ToPtr();
+    // Turn on Flywheel and wait until at speed if its not already
+    return VolcanoFlywheelOn(volcano).Until([volcano]() {
+            return volcano->IsFlywheelAtSpeed();
+        }
+    // Then index and wait until the kick sensor is triggered if its not already
+    ).AndThen(
+        frc2::InstantCommand{[volcano]() {
+            volcano->SetIndexers(true);
+        }, { volcano }}
+        .Until([volcano]() {
+            return volcano->GetKickSensor();
+        })
+    // Then kick the ball to the flywheel and wait a second
+    ).AndThen(
+        [volcano]() {
+            volcano->SetKicker(true);
+        },
+        { volcano }
+    ).AndThen(frc2::WaitCommand(1_s).ToPtr()
+    // Finally, turn off the kicker and indexers
+    ).AndThen(
+        [volcano]() {
+            volcano->SetKicker(false);
+            volcano->SetIndexers(false);
+        },
+        { volcano }
+    );
+}
+#pragma endregion
+
+#pragma region VolcanoShootAllBalls(Volcano* volcano)
+/// @brief Creates a command to shoot all balls from the volcano.
+/// @param volcano A pointer to the Volcano subsystem.
+inline frc2::CommandPtr VolcanoShootAllBalls(Volcano* volcano)
+{
+    // Turn on Flywheel and wait until at speed if its not already
+    return VolcanoFlywheelOn(volcano).Until([volcano]() {
+            return volcano->IsFlywheelAtSpeed();
+        }
+    // Then activate everything, making all balls go through the system
+    ).AndThen(
+        frc2::InstantCommand{[volcano]() {
+            volcano->SetIndexers(true);
+            volcano->SetKicker(true);
+            volcano->SetFlywheel(true);
+        }, { volcano }}
+    );
+}
+#pragma endregion
+
+#pragma region VolcanoStopAll(Volcano* volcano)
+/// @brief Creates a command to stop all action in the volcano. HALTS ERUPTION.
+/// @param volcano A pointer to the Volcano subsystem.
+inline frc2::CommandPtr VolcanoStopAll(Volcano* volcano)
+{
+    return frc2::InstantCommand{[volcano]() {
+            volcano->SetIndexers(false);
+            volcano->SetKicker(false);
+            volcano->SetFlywheel(false);
+        }, { volcano }}.ToPtr();
 }
 #pragma endregion

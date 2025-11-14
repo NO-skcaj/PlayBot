@@ -10,6 +10,9 @@
 #include <units/length.h>
 #include <units/voltage.h>
 
+#include <frc/geometry/Transform3d.h>
+#include <frc/apriltag/AprilTagFieldLayout.h>
+
 #include "lib/hardware/motors/Motor.h"
 #pragma endregion
 
@@ -17,141 +20,99 @@ typedef int Button;
 
 namespace constants
 {
+    #pragma region Swerve
     namespace swerve
     {
-        struct SwerveConfiguration
-        {
-            // Motor and encoders CAN IDs
-            CANid_t frontLeftDriveCANid;
-            CANid_t frontLeftTurnCANid;
-            CANid_t frontLeftEncoderCANid;
+        // Motor and encoders CAN IDs
+        constexpr CANid_t frontLeftDriveCANid = 1;
+        constexpr CANid_t frontLeftTurnCANid = 2;
+        constexpr CANid_t frontLeftEncoderCANid= 9;
 
-            CANid_t frontRightDriveCANid;
-            CANid_t frontRightTurnCANid;
-            CANid_t frontRightEncoderCANid;
+        constexpr CANid_t frontRightDriveCANid = 3;
+        constexpr CANid_t frontRightTurnCANid = 4;
+        constexpr CANid_t frontRightEncoderCANid = 10;
 
-            CANid_t backLeftDriveCANid;
-            CANid_t backLeftTurnCANid;
-            CANid_t backLeftEncoderCANid;
+        constexpr CANid_t backLeftDriveCANid = 5;
+        constexpr CANid_t backLeftTurnCANid = 6;
+        constexpr CANid_t backLeftEncoderCANid = 11;
 
-            CANid_t backRightDriveCANid;
-            CANid_t backRightTurnCANid;
-            CANid_t backRightEncoderCANid;
+        constexpr CANid_t backRightDriveCANid = 7;
+        constexpr CANid_t backRightTurnCANid = 8;
+        constexpr CANid_t backRightEncoderCANid = 12;
 
-            // PID, feedforward, and other configurations for the motors
-            hardware::motor::MotorConfiguration driveMotorConfig;
-            hardware::motor::MotorConfiguration turnMotorConfig;
-
-            // All encoders are going to be slightly off, this corrects that
-            units::radian_t frontLeftForwardAngle;
-            units::radian_t frontRightForwardAngle;
-            units::radian_t rearLeftForwardAngle;
-            units::radian_t rearRightForwardAngle;
-
-            // These make sure to limit how fast the robot can go
-            units::meters_per_second_t  maxSpeed;
-            units::radians_per_second_t maxAngularVelocity;
-
-            // Conversion factors for the motors from encoders to actual movement
-            units::meter_t  driveConversion;
-            units::radian_t angleConversion;
-
-            // The physical dimensions of the robot
-            units::meter_t wheelBase;
-            units::meter_t trackWidth;
+        // PID, feedforward, and other configurations for the motors
+        constexpr hardware::motor::MotorConfiguration driveMotorConfig{
+            40_A,            // Current Limit
+            true,            // Brake Mode
+            0.1, 0.02, 0.0,  // P, I , D
+            0.0, 0.0, 0.0    // S, V, A
         };
 
-        constexpr SwerveConfiguration RobotSwerveConfig
-        {
-            // CAN IDs
-            1, 2, 11,  // Front Left Drive,  Turn, Encoder
-            3, 4, 12,  // Front Right Drive, Turn, Encoder
-            5, 6, 13,  // Back Left Drive,   Turn, Encoder
-            7, 8, 14,  // Back Right Drive,  Turn, Encoder
-
-            // Drive Motor Config
-            hardware::motor::MotorConfiguration
-            {
-                40_A,            // Current Limit
-                true,            // Brake Mode
-                0.1, 0.02, 0.0,  // P, I , D
-                0.0, 0.0, 0.0    // S, V, A
-            },
-
-            // Turn Motor Config
-            hardware::motor::MotorConfiguration
-            {
-                30_A,           // Current Limit
-                true,           // Brake Mode
-                1.0, 0.0, 0.2,  // P, I , D
-                0.0, 0.0, 0.0   // S, V, A
-            },
-
-            // Forward Angles
-            units::radian_t{-0.193604 * 2 * std::numbers::pi},
-            units::radian_t{-0.422119 * 2 * std::numbers::pi},
-            units::radian_t{-0.174561 * 2 * std::numbers::pi},
-            units::radian_t{ 0.268555 * 2 * std::numbers::pi},
-
-            4_mps,                                                 // Max Speed 
-            units::radians_per_second_t{2 * std::numbers::pi},     // Max Angular Velocity
-
-            units::meter_t{(0.0098022 * std::numbers::pi) / 6.75}, // Drive Conversion
-            units::radian_t{(2 * std::numbers::pi) / 21.5},        // Angle Conversion
-
-            // Robot Dimensions 0.762 meters ^ 2
-            25_in, // Wheelbase
-            25_in  // Trackwidth
+        constexpr hardware::motor::MotorConfiguration turnMotorConfig{
+            30_A,           // Current Limit
+            true,           // Brake Mode
+            1.0, 0.0, 0.2,  // P, I , D
+            0.0, 0.0, 0.0   // S, V, A
         };
+
+        // All encoders are going to be slightly off, this corrects that
+        constexpr units::radian_t frontLeftForwardAngle {-0.193604 * 2 * std::numbers::pi}; // THESE ARE VALID FOR THE 2025 COMP BOT
+        constexpr units::radian_t frontRightForwardAngle{-0.422119 * 2 * std::numbers::pi}; // THESE ARE VALID FOR THE 2025 COMP BOT
+        constexpr units::radian_t rearLeftForwardAngle  {-0.174561 * 2 * std::numbers::pi}; // THESE ARE VALID FOR THE 2025 COMP BOT
+        constexpr units::radian_t rearRightForwardAngle { 0.268555 * 2 * std::numbers::pi}; // THESE ARE VALID FOR THE 2025 COMP BOT
+
+        // These make sure to limit how fast the robot can go
+        constexpr units::meters_per_second_t  maxSpeed          {4};
+        constexpr units::radians_per_second_t maxAngularVelocity{2 * std::numbers::pi};
+
+        // Conversion factors for the motors from encoders to actual movement
+        constexpr units::meter_t  driveConversion{(0.0098022 * std::numbers::pi) / 6.75};
+        constexpr units::radian_t angleConversion{(2 * std::numbers::pi) / 21.5};
+
+        // The physical dimensions of the robot
+        constexpr units::meter_t wheelBase {25};
+        constexpr units::meter_t trackWidth{25};
     }
+    #pragma endregion
 
+    #pragma region Volcano
     namespace volcano
     {
-        struct VolcanoConfiguration
-        {
-            // CAN IDs
-            CANid_t                             flywheelMotorCANid;
-            std::array<CANid_t, 3>              indexerMotorsCANid;
+        // CAN IDs
+        constexpr CANid_t flywheelMotorCANid      = 20;
+        constexpr CANid_t firstIndexerMotorCANid  = 21;
+        constexpr CANid_t secondIndexerMotorCANid = 22;
+        constexpr CANid_t kickerMotorCANid        = 23;
 
-            // Motor Configurations
-            hardware::motor::MotorConfiguration flywheelMotorConfig;
-            hardware::motor::MotorConfiguration indexerMotorsConfig;
+        constexpr int     ballSensorDIOPort       = 0;
 
-            units::volt_t                       flywheelIdleVoltage;
-            units::volt_t                       flywheelOnVoltage;
+        constexpr int     flywheelGearRatio       = 25; // ???
+
+        // Motor Configurations
+        constexpr hardware::motor::MotorConfiguration flywheelMotorConfig{
+            30_A,           // Current Limit
+            false,          // Brake Mode
+            5.0, 0.0, 0.0,  // P, I , D
+            0.0, 2.0, 0.0   // S, V, A
         };
 
-        constexpr VolcanoConfiguration volcanoConfig
-        {
-            // CAN IDs
-              20,           // Flywheel Motor
-            { 21, 22, 23 }, // Indexer Motors
+        constexpr hardware::motor::MotorConfiguration indexerMotorConfig{
+            30_A,           // Current Limit
+            true,           // Brake Mode
+            1.0, 0.0, 0.0,  // P, I , D
+            0.0, 0.0, 0.0   // S, V, A
+        };
 
-            // Motor Configurations
-            // Flywheel Motor Config, do not use PIDSVA, use voltage
-            hardware::motor::MotorConfiguration
-            {
-                30_A,           // Current Limit
-                false,          // Brake Mode
-                0.0, 0.0, 0.0,  // P, I , D
-                0.0, 0.2, 0.0   // S, V, A
-            },
-
-            // Indexer Motors Config
-            hardware::motor::MotorConfiguration
-            {
-                30_A,           // Current Limit
-                true,           // Brake Mode
-                1.0, 0.0, 0.0,  // P, I , D
-                0.0, 0.0, 0.0   // S, V, A
-            },
-
-            // Flywheel Voltages
-            2_V,  // Idle Voltage
-            10_V  // On Voltage
+        constexpr hardware::motor::MotorConfiguration kickMotorConfig{
+            30_A,           // Current Limit
+            true,           // Brake Mode
+            1.0, 0.0, 0.0,  // P, I , D
+            0.0, 0.0, 0.0   // S, V, A
         };
     }
+    #pragma endregion
 
+    #pragma region Controller
     namespace controller
     {
         // Drive Input Configurations
@@ -186,4 +147,41 @@ namespace constants
         constexpr Button Pov_270             = 270;
         constexpr Button Pov_315             = 315;
     }
+    #pragma endregion
+
+    #pragma region Vision
+    namespace vision 
+    {
+        constexpr std::string_view            CameraName{"PhotonCamera"};
+
+        constexpr frc::Transform3d            RobotToCam{frc::Translation3d{0_m, 4_in, 15_in}, frc::Rotation3d{}};
+
+        const     frc::AprilTagFieldLayout    TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2025ReefscapeAndyMark);
+
+        const     Eigen::Matrix<double, 3, 1> SingleTagStdDevs{4, 4, 8};
+
+        const     Eigen::Matrix<double, 3, 1> MultiTagStdDevs{0.5, 0.5, 1};
+
+        namespace AprilTagLocations
+        {
+            // These are kept because I really dont want to lose them. REEFSCAPE 2025
+            constexpr frc::Pose2d Tags2d[22] = 
+            { 
+                { 657.37_in,  25.80_in, { 126_deg} }, { 657.37_in, 291.20_in, { 234_deg} },
+                { 455.15_in, 317.15_in, { 270_deg} }, { 365.20_in, 241.64_in, {   0_deg} },
+                { 365.20_in,  75.39_in, {   0_deg} }, { 530.49_in, 130.17_in, { 300_deg} },
+                { 546.87_in, 158.50_in, {   0_deg} }, { 530.49_in, 186.83_in, {  60_deg} },
+                { 497.77_in, 186.83_in, { 120_deg} }, { 481.39_in, 158.50_in, { 180_deg} },
+                { 497.77_in, 130.17_in, { 240_deg} }, { 33.51_in,   25.80_in, {  54_deg} },
+                { 33.51_in,  291.20_in, { 306_deg} }, { 325.68_in, 241.64_in, { 180_deg} },
+                { 325.68_in,  75.39_in, { 180_deg} }, { 235.73_in,  -0.15_in, {  90_deg} },
+                { 160.39_in, 130.17_in, { 240_deg} }, { 144.00_in, 158.50_in, { 180_deg} },
+                { 160.39_in, 186.83_in, { 120_deg} }, { 193.10_in, 186.83_in, { 60_deg,} },
+                { 209.49_in, 158.50_in, { 0_deg, } }, { 193.10_in, 130.17_in, { 300_deg} }
+            };
+
+            constexpr std::span<const frc::Pose2d> Pose2dTagsSpan{std::begin(Tags2d), std::end(Tags2d)};
+        }
+    }
+    #pragma endregion
 }

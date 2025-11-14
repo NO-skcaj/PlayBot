@@ -2,6 +2,46 @@
 
 #pragma region Chassis
 Chassis::Chassis()
+    : m_swerveModules
+      {
+          subsystem::SwerveModule{constants::swerve::frontLeftDriveCANid,  constants::swerve::frontLeftTurnCANid,  constants::swerve::frontLeftEncoderCANid,  constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion},
+          subsystem::SwerveModule{constants::swerve::frontRightDriveCANid, constants::swerve::frontRightTurnCANid, constants::swerve::frontRightEncoderCANid, constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion},
+          subsystem::SwerveModule{constants::swerve::backLeftDriveCANid,   constants::swerve::backLeftTurnCANid,   constants::swerve::backLeftEncoderCANid,   constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion},
+          subsystem::SwerveModule{constants::swerve::backRightDriveCANid,  constants::swerve::backRightTurnCANid,  constants::swerve::backRightEncoderCANid,  constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion}
+      },
+      m_kinematics
+      {
+          frc::Translation2d{+constants::swerve::wheelBase / 2, +constants::swerve::trackWidth / 2}, // Front Left
+          frc::Translation2d{+constants::swerve::wheelBase / 2, -constants::swerve::trackWidth / 2}, // Front Right
+          frc::Translation2d{-constants::swerve::wheelBase / 2, +constants::swerve::trackWidth / 2}, // Back Left
+          frc::Translation2d{-constants::swerve::wheelBase / 2, -constants::swerve::trackWidth / 2}  // Back Right
+      },
+      m_poseEstimator
+      {
+          m_kinematics,                                 // Kinematics object
+          frc::Rotation2d(),                            // Initial gyro angle
+          std::array<frc::SwerveModulePosition, 4>{},   // Initial module positions
+          frc::Pose2d()                                 // Initial pose
+      },
+      m_isFieldRelative{true},
+      m_vision
+      {
+        constants::vision::CameraName,
+        constants::vision::RobotToCam,
+        constants::vision::TagLayout,
+        constants::vision::SingleTagStdDevs,
+        constants::vision::MultiTagStdDevs,
+        [this] (frc::Pose2d pose, units::second_t timestamp, Eigen::Matrix<double, 3, 1> stddevs)
+        {
+           m_poseEstimator.AddVisionMeasurement(pose, timestamp, {stddevs[0], stddevs[1], stddevs[2]});
+        }
+      },
+      m_loggedModuleStatePublisher{
+            nt::NetworkTableInstance::GetDefault().GetStructArrayTopic<frc::SwerveModuleState>("/Data/SwerveStates").Publish()},
+       m_loggedPosePublisher{
+         nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::Pose2d>("/Data/CurrentPose").Publish()},
+      m_loggedDesiredSpeedsPublisher{
+        nt::NetworkTableInstance::GetDefault().GetStructTopic<frc::ChassisSpeeds>("/Data/DesiredSpeeds").Publish()}
 {
     // Set the swerve modules to their forward angles
     ResetWheelAnglesToZero();
@@ -66,10 +106,10 @@ void Chassis::ZeroHeading()
 void Chassis::ResetWheelAnglesToZero()
 {
     // Set the swerve wheel angles to zero
-    m_swerveModules[0].SetWheelAngleToForward(constants::swerve::RobotSwerveConfig.frontLeftForwardAngle);
-    m_swerveModules[1].SetWheelAngleToForward(constants::swerve::RobotSwerveConfig.frontRightForwardAngle);
-    m_swerveModules[2].SetWheelAngleToForward(constants::swerve::RobotSwerveConfig.rearLeftForwardAngle);
-    m_swerveModules[3].SetWheelAngleToForward(constants::swerve::RobotSwerveConfig.rearRightForwardAngle);
+    m_swerveModules[0].SetWheelAngleToForward(constants::swerve::frontLeftForwardAngle);
+    m_swerveModules[1].SetWheelAngleToForward(constants::swerve::frontRightForwardAngle);
+    m_swerveModules[2].SetWheelAngleToForward(constants::swerve::rearLeftForwardAngle);
+    m_swerveModules[3].SetWheelAngleToForward(constants::swerve::rearRightForwardAngle);
 }
 #pragma endregion
 
@@ -99,18 +139,6 @@ wpi::array<frc::SwerveModuleState, 4> Chassis::GetModuleStates()
         m_swerveModules[3].GetState()
     };
 
-    // Adjust for simulation conversions
-    if (frc::RobotBase::IsSimulation())
-    {
-        // Convert the states back to real world units
-        for (auto swerveState : swerveStates)
-        {
-            // Adjust the speed and angle conversions
-            swerveState = {swerveState.speed / constants::swerve::RobotSwerveConfig.driveConversion.value(), 
-                           swerveState.angle / constants::swerve::RobotSwerveConfig.angleConversion.value()};
-        }
-    }
-
     // Return the swerve states
     return swerveStates;
 }
@@ -129,18 +157,6 @@ std::array<frc::SwerveModulePosition, 4> Chassis::GetModulePositions()
         m_swerveModules[2].GetPosition(),
         m_swerveModules[3].GetPosition()
     };
-
-    // Adjust for simulation conversions
-    if (frc::RobotBase::IsSimulation())
-    {
-        // Convert the swerve positions back to real world units
-        for (auto swervePosition : swervePositions)
-        {
-            // Adjust the distance and angle conversions
-            swervePosition = {swervePosition.distance / constants::swerve::RobotSwerveConfig.driveConversion.value(), 
-                              swervePosition.angle    / constants::swerve::RobotSwerveConfig.angleConversion.value()};
-        }
-    }
 
     // Return the swerve positions
     return swervePositions;
@@ -185,5 +201,14 @@ void Chassis::OdometryPeriodic()
 
     // This also updates the pose estimator with vision as well as updating photonvisions internal estimators
     m_vision.Periodic();
+}
+#pragma endregion
+
+#pragma region GetNearestTag
+/// @brief Method to get the nearest AprilTag pose.
+/// @return The nearest AprilTag pose.
+frc::Pose2d Chassis::GetNearestTag()
+{
+    return GetPose().Nearest(constants::vision::AprilTagLocations::Pose2dTagsSpan);
 }
 #pragma endregion

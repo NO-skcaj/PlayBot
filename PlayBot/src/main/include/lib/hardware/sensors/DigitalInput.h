@@ -1,52 +1,44 @@
 #pragma once
 
-#include "lib/hardware/sensor/Sensor.h"
+#include "lib/hardware/sensors/Sensor.h"
 
 #include <frc/DigitalInput.h>
 
-#include <frc/filter/Debouncer.h>
 
 namespace hardware
 {
-    namespace sensor
+
+namespace sensor
+{
+
+    class DigitalInput : public Sensor<bool>
     {
-        class DigitalInput : public Sensor<bool>
-        {
-            public:
+        public:
 
-                DigitalInput(int CanId, units::second_t toleranceZone = 0_s)
-                    : m_sensor{CanId},
-                      m_filter{toleranceZone, frc::Debouncer::DebounceType::kBoth}
-                {
+            DigitalInput(int CanId)
+                : m_sensor{CanId}
+            {}
 
-                }
+            inline bool operator==(bool operand) override
+            {
+                return m_sensor.Get() == operand;
+            }
 
-                bool operator==(bool operand) override
-                {
-                    return m_sensor.Get() == operand;
-                }
+            inline operator bool() override
+            {
+                return m_sensor.Get();
+            }
 
-                operator bool() override
-                {
-                    return m_sensor.Get();
-                }
+            inline bool Get() override
+            {
+                return m_sensor.Get();
+            }
 
-                bool Get() override
-                {
-                    return m_sensor.Get();
-                }
+    private:
 
-                void Periodic() override
-                {
-                    m_value = m_filter.Calculate(m_sensor.Get());
-                }
+        frc::DigitalInput m_sensor;
 
-        private:
+    };
+}
 
-            frc::DigitalInput m_sensor;
-            frc::Debouncer    m_filter;
-            bool              m_value;
-
-        };
-    }
 }
