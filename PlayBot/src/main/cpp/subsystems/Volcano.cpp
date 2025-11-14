@@ -5,85 +5,61 @@
 Volcano::Volcano()
     : m_flywheelMotor
       {
-          constants::volcano::volcanoConfig.flywheelMotorCANid, constants::volcano::volcanoConfig.flywheelMotorConfig, frc::DCMotor::Falcon500()
+          constants::volcano::flywheelMotorCANid, constants::volcano::flywheelMotorConfig, frc::DCMotor::Falcon500()
       },
       m_indexerMotors
       {
-          hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[0], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()},
-          hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[1], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()},
-          hardware::motor::SparkMax{constants::volcano::volcanoConfig.indexerMotorsCANid[2], constants::volcano::volcanoConfig.indexerMotorsConfig, frc::DCMotor::NEO()}
+          hardware::motor::SparkMax{
+            constants::volcano::firstIndexerMotorCANid,  constants::volcano::indexerMotorConfig, frc::DCMotor::NEO()},
+          hardware::motor::SparkMax{
+            constants::volcano::secondIndexerMotorCANid, constants::volcano::indexerMotorConfig, frc::DCMotor::NEO()}
       },
+      m_kickMotor{constants::volcano::kickerMotorCANid, constants::volcano::kickMotorConfig, frc::DCMotor::NEO()},
+
+      m_ballSensor{constants::volcano::ballSensorDIOPort},
+      
       m_flywheelState{FlywheelState::OFF}
+{}
+#pragma endregion
+
+#pragma region KickBall(bool ruinning)
+/// @brief Method to kick the ball to the flywheel.
+/// @param running Whether the kicker is running or not.
+void Volcano::SetKicker(bool running)
 {
-    // Initialize the flywheel motor to an OFF state
-    m_flywheelMotor.SetReferenceState(0_V);
+    m_kickMotor.SetReferenceState(running ? 1.0 : 0.0); // REPLACE WITH REVOLUTION SETPOINT
 }
 #pragma endregion
 
-#pragma region SetFlywheel
-/// @brief Method to set the flywheel state.
-/// @param isRunning Boolean indicating whether the flywheel should be running or not.
-void Volcano::SetFlywheel(bool isRunning)
+#pragma region IndexBall(bool ruinning)
+/// @brief Method to kick the ball to the flywheel.
+/// @param running Whether the kicker is running or not.
+void Volcano::SetIndexers(bool ruinning)
 {
-    // State machine to handle the flywheel states
-    switch (m_flywheelState)
+    for (auto& indexer : m_indexerMotors)
     {
-        case FlywheelState::RUNNING:
-        {
-            if (!isRunning)
-            { 
-                m_flywheelMotor.SetReferenceState(constants::volcano::volcanoConfig.flywheelIdleVoltage);
-                m_flywheelState = FlywheelState::IDLE;
-            } 
-            else
-            {
-                m_flywheelMotor.SetReferenceState(0_V);
-                m_flywheelState = FlywheelState::OFF;
-            }
-            break;
-        }
-        case FlywheelState::IDLE:
-        {
-            if (isRunning)
-            {
-                m_flywheelMotor.SetReferenceState(constants::volcano::volcanoConfig.flywheelOnVoltage);
-                m_flywheelState = FlywheelState::RUNNING;
-            }
-            else
-            {
-                m_flywheelMotor.SetReferenceState(0_V);
-                m_flywheelState = FlywheelState::OFF;
-            }
-            break;
-        }
-        case FlywheelState::OFF:
-        {
-            if (isRunning)
-            {
-                m_flywheelMotor.SetReferenceState(constants::volcano::volcanoConfig.flywheelOnVoltage);
-                m_flywheelState = FlywheelState::RUNNING;
-            }
-            else
-            {
-                m_flywheelMotor.SetReferenceState(constants::volcano::volcanoConfig.flywheelIdleVoltage);
-                m_flywheelState = FlywheelState::IDLE;
-            }
-            break;
-        }
+        indexer.SetReferenceState(ruinning ? 1.0 : 0.0); // REPLACE WITH REVOLUTION SETPOINT
     }
 }
 #pragma endregion
 
-#pragma region SetIndexer
-/// @brief Method to set the indexer motors' speed.
-// Not sure what this should be, so it will be between 0 and 12 volts, limit as needed DO NOT LIMIT IN IMPLEMENTATION, LIMIT HERE
-void Volcano::SetIndexer(double speed)
+#pragma region SpinUpFlyWheel(bool running)
+void Volcano::SetFlywheel(bool running)
 {
-    // Set all indexer motors to the same speed
-    for (auto& motor : m_indexerMotors)
-    {
-        // Set the motor reference state
-        motor.SetReferenceState(speed);
-    }
+    m_flywheelMotor.SetReferenceState(running ? 1.0 : 0.0); // This is alright
+}
+#pragma endregion
+
+#pragma region GetKickSensor
+bool Volcano::GetKickSensor()
+{
+    return (bool) m_ballSensor;
+}
+#pragma endregion
+
+#pragma region IsFlywheelAtSpeed
+bool Volcano::IsFlywheelAtSpeed()
+{
+    return m_flywheelMotor.GetVelocity() >= 10_tps; // arbitrary, this number doesn't mean anything
 }
 #pragma endregion

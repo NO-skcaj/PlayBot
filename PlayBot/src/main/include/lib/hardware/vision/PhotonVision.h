@@ -52,9 +52,8 @@ class PhotonVision
             Eigen::Matrix<double, 3, 1> singleTagStdDevs,
             Eigen::Matrix<double, 3, 1> multiTagStdDevs,
             std::function<void(frc::Pose2d, units::second_t, Eigen::Matrix<double, 3, 1>)> estConsumer
-            )
-            : estConsumer{estConsumer},
-              cameraName{cameraName},
+        )
+            : cameraName{cameraName},
               tagLayout{tagLayout},
               photonEstimator{ 
                 tagLayout, 
@@ -63,7 +62,8 @@ class PhotonVision
               },
               camera{cameraName},
               singleTagStdDevs{singleTagStdDevs},
-              multiTagStdDevs{multiTagStdDevs}
+              multiTagStdDevs{multiTagStdDevs},
+              estConsumer{estConsumer}
         {
             photonEstimator.SetMultiTagFallbackStrategy(photon::PoseStrategy::LOWEST_AMBIGUITY);
 

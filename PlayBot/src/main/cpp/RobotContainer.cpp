@@ -27,16 +27,14 @@ RobotContainer::RobotContainer()
     // Configure the chassis default command
     m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetChassisSpeeds()));
 
-    // Configure the volcano default command
-    m_volcano.SetDefaultCommand(VolcanoIndexerControl(&m_volcano, [this] { return m_flywheelLimiter.Calculate(frc::ApplyDeadband(m_driveController.GetRightTriggerAxis(), constants::controller::FlywheelDeadZone)).value(); } ));
-
     // Configure the operator controller
     std::pair<Button, frc2::CommandPtr> runOnceControls[] =
     {
         {constants::controller::A,           ChassisZeroHeading(&m_chassis)},
         {constants::controller::B,           FlipFieldCentricity(&m_chassis)},
         {constants::controller::RightBumper, VolcanoFlywheelOn(&m_volcano)},
-        {constants::controller::LeftBumper,  VolcanoFlywheelOff(&m_volcano)}
+        {constants::controller::LeftBumper,  VolcanoFlywheelOff(&m_volcano)},
+        {constants::controller::X,           VolcanoShootOneBall(&m_volcano)}
     };
 
     // Configure the run-once controls
@@ -44,6 +42,10 @@ RobotContainer::RobotContainer()
     {
         frc2::JoystickButton(&m_driveController, int(button)).OnTrue(std::move(command));
     }
+
+    frc2::JoystickButton(&m_driveController, constants::controller::Y)
+        .OnTrue (std::move(VolcanoShootAllBalls(&m_volcano)))
+        .OnFalse(std::move(VolcanoStopAll(&m_volcano))); 
 }
 #pragma endregion
 
@@ -57,9 +59,9 @@ std::function<frc::ChassisSpeeds()> RobotContainer::GetChassisSpeeds()
     {
         // Return the chassis speeds based on joystick inputs
         return frc::ChassisSpeeds{
-            -constants::swerve::RobotSwerveConfig.maxSpeed           * frc::ApplyDeadband(m_driveController.GetRawAxis(1), constants::controller::TranslationDeadZone),
-            -constants::swerve::RobotSwerveConfig.maxSpeed           * frc::ApplyDeadband(m_driveController.GetRawAxis(0), constants::controller::TranslationDeadZone),
-             constants::swerve::RobotSwerveConfig.maxAngularVelocity * frc::ApplyDeadband(m_driveController.GetRawAxis(4), constants::controller::RotateDeadZone)
+            -constants::swerve::maxSpeed           * frc::ApplyDeadband(m_driveController.GetRawAxis(1), constants::controller::TranslationDeadZone),
+            -constants::swerve::maxSpeed           * frc::ApplyDeadband(m_driveController.GetRawAxis(0), constants::controller::TranslationDeadZone),
+             constants::swerve::maxAngularVelocity * frc::ApplyDeadband(m_driveController.GetRawAxis(4), constants::controller::RotateDeadZone)
         };
     };
 }
