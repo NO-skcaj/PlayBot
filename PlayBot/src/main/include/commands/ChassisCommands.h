@@ -3,7 +3,7 @@
 #pragma region Includes
 #include <frc2/command/CommandPtr.h>
 
-#include <frc2/command/FunctionalCommand.h>
+#include <frc2/command/InstantCommand.h>
 #include <frc2/command/WaitCommand.h>
 
 #include <frc/geometry/Pose2d.h>
@@ -19,13 +19,10 @@
 /// @return A CommandPtr that resets the gyro yaw to zero.
 inline frc2::CommandPtr ChassisZeroHeading(Chassis* chassis)
 {
-    // Create and return a FunctionalCommand that resets the gyro yaw
-    return frc2::FunctionalCommand{
-        []        ()                { },                         // Initialization function (runs once when the command starts)  
-        []        ()                { },                         // Execution function (runs repeatedly while the command is active)
-        [chassis] (bool interupted) { chassis->ZeroHeading(); }, // End function (runs once when the command ends, either interrupted or completed)
-        []        ()                { return true; },            // IsFinished function (determines when the command should end)
-        {}                                                       // Requirements (subsystems required by this command)
+    // Create and return a InstantCommand that resets the gyro yaw
+    return frc2::InstantCommand{
+        [chassis] (bool interupted) { chassis->ZeroHeading(); },
+        { chassis } // Requirements (subsystems required by this command)
     }.ToPtr();
 }
 #pragma endregion
@@ -37,14 +34,11 @@ inline frc2::CommandPtr ChassisZeroHeading(Chassis* chassis)
 ///  @return A CommandPtr that executes the chassis drive functionality.
 inline frc2::CommandPtr ChassisDrive(Chassis* chassis, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier)
 {
-    // Create and return a FunctionalCommand that drives the chassis
-    return frc2::FunctionalCommand{
-        []                               ()                { },                                          // Initialization function (runs once when the command starts)
-        [chassis, chassisSpeedsSupplier] ()                { chassis->Drive(chassisSpeedsSupplier()); }, // Execution function (runs repeatedly while the command is active)
-        []                               (bool interupted) { },                                          // End function (runs once when the command ends, either interrupted or completed) 
-        []                               ()                { return false; },                            // IsFinished function (determines when the command should end)  
+    // Create and return a repeating InstantCommand that drives the chassis
+    return frc2::InstantCommand{
+        [chassis, chassisSpeedsSupplier] () { chassis->Drive(chassisSpeedsSupplier()); }, // Execution function (runs repeatedly while the command is active)
         { chassis }                                                                                      // Requirements (subsystems required by this command)
-    }.ToPtr();
+    }.ToPtr().Repeatedly();
 }
 #pragma endregion
 
@@ -82,13 +76,10 @@ inline frc2::CommandPtr ChassisDrivePose(Chassis* chassis, frc::Pose2d targetPos
 /// @return A CommandPtr that flips the field centricity.
 inline frc2::CommandPtr FlipFieldCentricity(Chassis* chassis)
 {
-    // Create and return a FunctionalCommand that flips the field centricity
-    return frc2::FunctionalCommand{
-        []        ()                { },                              // Initialization function (runs once when the command starts)
-        [chassis] ()                { chassis->FlipFieldCentric(); }, // Execution function (runs repeatedly while the command is active)
-        []        (bool interupted) { },                              // End function (runs once when the command ends, either interrupted or completed)
-        []        ()                { return true; },                 // IsFinished function (determines when the command should end)
-        { chassis }                                                   // Requirements (subsystems required by this command)
+    // Create and return a InstantCommand that flips the field centricity
+    return frc2::InstantCommand{
+        [chassis] () { chassis->FlipFieldCentric(); }, // Execution function
+        { chassis } // Requirements (subsystems required by this command)
     }.ToPtr();
 }
 #pragma endregion

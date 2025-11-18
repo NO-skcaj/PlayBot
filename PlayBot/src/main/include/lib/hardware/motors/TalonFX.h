@@ -27,15 +27,14 @@ namespace hardware
             public:
 
                 inline TalonFX(CANid_t CANid, MotorConfiguration config, frc::DCMotor motorModel, units::kilogram_square_meter_t simMomentOfIntertia = 0.001_kg_sq_m) 
-                    : Motor{frc::sim::DCMotorSim{
+                    : Motor{frc::sim::DCMotorSim(
                         frc::LinearSystemId::DCMotorSystem(
-                                motorModel,
-                                simMomentOfIntertia,
-                                1
-                            ),
-                            motorModel
-                        }
-                      },
+                            motorModel,
+                            simMomentOfIntertia,
+                            1
+                        ),
+                        motorModel
+                      )},
                     m_motor{CANid, "rio"}
                 {
                     ConfigureMotor(config);
@@ -159,7 +158,7 @@ namespace hardware
             private:
 
                 ctre::phoenix6::hardware::TalonFX             m_motor;    // TalonFX motor controller
-                ctre::phoenix6::controls::MotionMagicVoltage m_motionMagicVoltage{0_tr};
+                ctre::phoenix6::controls::MotionMagicVoltage  m_motionMagicVoltage{0_tr};
         };
     }
 }

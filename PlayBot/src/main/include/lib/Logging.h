@@ -1,7 +1,7 @@
 #pragma once
 
 #include <frc/smartdashboard/SmartDashboard.h>
-#include <typeinfo>
+
 
 void log(std::string_view name, double value)
 {
