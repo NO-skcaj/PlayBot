@@ -83,7 +83,7 @@ inline frc2::CommandPtr VolcanoShootAllBalls(Volcano* volcano)
             volcano->SetIndexers(true);
             volcano->SetKicker(true);
             volcano->SetFlywheel(true);
-        }, { volcano }}
+        }, { volcano }}.ToPtr()
     );
 }
 #pragma endregion
