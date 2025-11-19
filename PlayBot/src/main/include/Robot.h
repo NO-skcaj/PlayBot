@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning(disable : 4068) // Disable warnings for unknown pragmas
 
 #include <hal/FRCUsageReporting.h>
 #include <frc/TimedRobot.h>

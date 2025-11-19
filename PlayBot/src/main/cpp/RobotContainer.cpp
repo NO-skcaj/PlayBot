@@ -32,8 +32,8 @@ RobotContainer::RobotContainer()
     {
         {constants::controller::A,           ChassisZeroHeading(&m_chassis)},
         {constants::controller::B,           FlipFieldCentricity(&m_chassis)},
-        {constants::controller::RightBumper, VolcanoFlywheelOn(&m_volcano)},
-        {constants::controller::LeftBumper,  VolcanoFlywheelOff(&m_volcano)},
+        {constants::controller::RightBumper, SetVolcanoFlywheelSpeed(&m_volcano, 1000_tps)},
+        {constants::controller::LeftBumper,  SetVolcanoFlywheelSpeed(&m_volcano, 0_tps)},
         {constants::controller::X,           VolcanoShootOneBall(&m_volcano)}
     };
 
