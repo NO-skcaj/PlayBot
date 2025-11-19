@@ -15,28 +15,33 @@ public:
 
     void SetIndexers(bool running);
 
-    void SetFlywheel(bool running);
+    void SetFlywheel(units::turns_per_second_t targetSpeed);
 
-    bool GetKickSensor();
+    bool IsBallDetected();
 
     bool IsFlywheelAtSpeed();
 
 private:
 
-    enum class FlywheelState
+    
+
+    hardware::motor::TalonFX  m_flywheelMotor
     {
-        OFF,
-        IDLE,
-        RUNNING
+        constants::volcano::flywheelMotorCANid, constants::volcano::flywheelMotorConfig, frc::DCMotor::Falcon500()
     };
 
-    hardware::motor::TalonFX  m_flywheelMotor;
+    hardware::motor::SparkMax m_indexerMotors[2] 
+    {
+         hardware::motor::SparkMax{constants::volcano::firstIndexerMotorCANid,
+                                  constants::volcano::indexerMotorConfig, frc::DCMotor::NEO()},
+          hardware::motor::SparkMax{constants::volcano::secondIndexerMotorCANid, 
+                                   constants::volcano::indexerMotorConfig, frc::DCMotor::NEO()}
+    };
 
-    hardware::motor::SparkMax m_indexerMotors[2];
+    hardware::motor::SparkMax m_kickMotor{constants::volcano::kickerMotorCANid, 
+                                          constants::volcano::kickMotorConfig, frc::DCMotor::NEO()};
 
-    hardware::motor::SparkMax m_kickMotor;
+    hardware::sensor::DigitalInput m_ballSensor{constants::volcano::ballSensorDIOPort};
 
-    hardware::sensor::DigitalInput m_ballSensor;
-
-    FlywheelState m_flywheelState;
+    units::turns_per_second_t m_targetSpeed;
 };

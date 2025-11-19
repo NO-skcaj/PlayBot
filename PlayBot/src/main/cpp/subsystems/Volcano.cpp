@@ -3,23 +3,9 @@
 #pragma region Volcano
 /// @brief Constructor for the Volcano subsystem.
 Volcano::Volcano()
-    : m_flywheelMotor
-      {
-          constants::volcano::flywheelMotorCANid, constants::volcano::flywheelMotorConfig, frc::DCMotor::Falcon500()
-      },
-      m_indexerMotors
-      {
-          hardware::motor::SparkMax{
-            constants::volcano::firstIndexerMotorCANid,  constants::volcano::indexerMotorConfig, frc::DCMotor::NEO()},
-          hardware::motor::SparkMax{
-            constants::volcano::secondIndexerMotorCANid, constants::volcano::indexerMotorConfig, frc::DCMotor::NEO()}
-      },
-      m_kickMotor{constants::volcano::kickerMotorCANid, constants::volcano::kickMotorConfig, frc::DCMotor::NEO()},
+{
 
-      m_ballSensor{constants::volcano::ballSensorDIOPort},
-      
-      m_flywheelState{FlywheelState::OFF}
-{}
+}
 #pragma endregion
 
 #pragma region KickBall(bool ruinning)
@@ -27,7 +13,7 @@ Volcano::Volcano()
 /// @param running Whether the kicker is running or not.
 void Volcano::SetKicker(bool running)
 {
-    m_kickMotor.SetReferenceState(running ? 1.0 : 0.0); // REPLACE WITH REVOLUTION SETPOINT
+    m_kickMotor.SetReferenceState(running ? 1.0 : 0.0); // TODO: REPLACE WITH REVOLUTION SETPOINT
 }
 #pragma endregion
 
@@ -43,15 +29,17 @@ void Volcano::SetIndexers(bool ruinning)
 }
 #pragma endregion
 
-#pragma region SpinUpFlyWheel(bool running)
-void Volcano::SetFlywheel(bool running)
+#pragma region SetFlywheel
+/// @param targetSpeed - the speed we want it at
+void Volcano::SetFlywheel(units::turns_per_second_t targetSpeed)
 {
-    m_flywheelMotor.SetReferenceState(running ? 1.0 : 0.0); // This is alright
+    m_flywheelMotor.SetReferenceState(targetSpeed); // This is alright
+    m_targetSpeed = targetSpeed;
 }
 #pragma endregion
 
-#pragma region GetKickSensor
-bool Volcano::GetKickSensor()
+#pragma region IsBallDetected
+bool Volcano::IsBallDetected()
 {
     return (bool) m_ballSensor;
 }
@@ -60,6 +48,8 @@ bool Volcano::GetKickSensor()
 #pragma region IsFlywheelAtSpeed
 bool Volcano::IsFlywheelAtSpeed()
 {
-    return m_flywheelMotor.GetVelocity() >= 10_tps; // arbitrary, this number doesn't mean anything
+    auto flyWheelSpeed = m_flywheelMotor.GetVelocity();
+    // Check if the flywheel speed is within 5% of the target speed
+    return std::abs(flyWheelSpeed.value() - m_targetSpeed.value()) <= m_targetSpeed.value() * 0.05;
 }
 #pragma endregion

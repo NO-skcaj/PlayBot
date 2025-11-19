@@ -15,21 +15,10 @@
 /// @param volcano A pointer to the Volcano subsystem.
 /// @return A CommandPtr that turns the flywheel on.
 /// TODO: Need to be able to set the flywheel speed.
-inline frc2::CommandPtr VolcanoFlywheelOn(Volcano* volcano)
+inline frc2::CommandPtr SetVolcanoFlywheelSpeed(Volcano* volcano, units::turns_per_second_t speed)
 {
     // Create and return a FunctionalCommand that turns the flywheel on
-    return frc2::InstantCommand{[volcano] () { volcano->SetFlywheel(true); }, { volcano }}.ToPtr();
-}
-#pragma endregion
-
-#pragma region VolcanoFlywheelOff(Volcano* volcano)
-/// @brief Creates a command to turn the volcano flywheel off.
-/// @param volcano A pointer to the Volcano subsystem.
-/// @return A CommandPtr that turns the flywheel off.
-inline frc2::CommandPtr VolcanoFlywheelOff(Volcano* volcano)
-{
-    // Create and return a FunctionalCommand that turns the flywheel off
-    return frc2::InstantCommand{[volcano] () { volcano->SetFlywheel(false); }, { volcano }}.ToPtr();
+    return frc2::InstantCommand{[volcano, speed] () { volcano->SetFlywheel(speed); }, { volcano }}.ToPtr();
 }
 #pragma endregion
 
@@ -39,16 +28,16 @@ inline frc2::CommandPtr VolcanoFlywheelOff(Volcano* volcano)
 inline frc2::CommandPtr VolcanoShootOneBall(Volcano* volcano)
 {
     // Turn on Flywheel and wait until at speed if its not already
-    return VolcanoFlywheelOn(volcano).Until([volcano]() {
+    return SetVolcanoFlywheelSpeed(volcano, 1000_tps).Until([volcano]() {
             return volcano->IsFlywheelAtSpeed();
         }
     // Then index and wait until the kick sensor is triggered if its not already
-    ).AndThen(
+    ).AlongWith(
         frc2::InstantCommand{[volcano]() {
             volcano->SetIndexers(true);
         }, { volcano }}
         .Until([volcano]() {
-            return volcano->GetKickSensor();
+            return volcano->IsBallDetected();
         })
     // Then kick the ball to the flywheel and wait a second
     ).AndThen(
@@ -62,6 +51,7 @@ inline frc2::CommandPtr VolcanoShootOneBall(Volcano* volcano)
         [volcano]() {
             volcano->SetKicker(false);
             volcano->SetIndexers(false);
+            volcano->SetFlywheel(0_tps);
         },
         { volcano }
     );
@@ -74,7 +64,7 @@ inline frc2::CommandPtr VolcanoShootOneBall(Volcano* volcano)
 inline frc2::CommandPtr VolcanoShootAllBalls(Volcano* volcano)
 {
     // Turn on Flywheel and wait until at speed if its not already
-    return VolcanoFlywheelOn(volcano).Until([volcano]() {
+    return SetVolcanoFlywheelSpeed(volcano, 1000_tps).Until([volcano]() {
             return volcano->IsFlywheelAtSpeed();
         }
     // Then activate everything, making all balls go through the system
@@ -82,7 +72,7 @@ inline frc2::CommandPtr VolcanoShootAllBalls(Volcano* volcano)
         frc2::InstantCommand{[volcano]() {
             volcano->SetIndexers(true);
             volcano->SetKicker(true);
-            volcano->SetFlywheel(true);
+            volcano->SetFlywheel(1000_tps);
         }, { volcano }}.ToPtr()
     );
 }
@@ -96,7 +86,7 @@ inline frc2::CommandPtr VolcanoStopAll(Volcano* volcano)
     return frc2::InstantCommand{[volcano]() {
             volcano->SetIndexers(false);
             volcano->SetKicker(false);
-            volcano->SetFlywheel(false);
+            volcano->SetFlywheel(0_tps);
         }, { volcano }}.ToPtr();
 }
 #pragma endregion

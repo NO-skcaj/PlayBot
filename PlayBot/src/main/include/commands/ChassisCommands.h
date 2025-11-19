@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning(disable : 4068) // Disable warnings for unknown pragmas
 
 #pragma region Includes
 #include <frc2/command/CommandPtr.h>
@@ -21,7 +22,7 @@ inline frc2::CommandPtr ChassisZeroHeading(Chassis* chassis)
 {
     // Create and return a InstantCommand that resets the gyro yaw
     return frc2::InstantCommand{
-        [chassis] (bool interupted) { chassis->ZeroHeading(); },
+        [chassis] () { chassis->ZeroHeading(); },
         { chassis } // Requirements (subsystems required by this command)
     }.ToPtr();
 }
