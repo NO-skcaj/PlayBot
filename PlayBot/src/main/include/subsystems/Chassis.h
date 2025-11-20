@@ -3,10 +3,6 @@
 #pragma region Includes
 #include <wpi/array.h>
 
-#include <networktables/NetworkTableInstance.h>
-#include <networktables/StructArrayTopic.h>
-#include <networktables/StructTopic.h>
-
 #include <frc2/command/SubsystemBase.h>
 
 #include <frc/geometry/Rotation2d.h>
@@ -19,6 +15,7 @@
 
 #include <frc/estimator/SwerveDrivePoseEstimator.h>
 
+#include "lib/Logging.h"
 #include "lib/hardware/gyro/Navx.h"
 #include "lib/hardware/vision/PhotonVision.h"
 #include "lib/subsystem/SwerveModule.h"
@@ -32,8 +29,6 @@ class Chassis : public frc2::SubsystemBase
 
         explicit                                 Chassis();
     
-        void                                     Periodic() override;
-    
         void                                     Drive(const frc::ChassisSpeeds& speeds);
     
         void                                     ZeroHeading();
@@ -42,7 +37,7 @@ class Chassis : public frc2::SubsystemBase
         void                                     ResetDriveEncoders();
     
         wpi::array<frc::SwerveModuleState, 4>    GetModuleStates();
-        std::array<frc::SwerveModulePosition, 4> GetModulePositions();
+        wpi::array<frc::SwerveModulePosition, 4> GetModulePositions();
     
         void                                     FlipFieldCentric();
 
@@ -50,10 +45,10 @@ class Chassis : public frc2::SubsystemBase
         frc::Pose2d                              GetPose();
 
         frc::Pose2d                              GetNearestTag();
+        
+        void                                     Periodic() override;
     
     private:
-    
-        void OdometryPeriodic();
         
         // Swerve module order for kinematics calculations
         //
@@ -65,21 +60,48 @@ class Chassis : public frc2::SubsystemBase
         //      | 2      3 |                 |
         //   RL +----------+ RR              |
         
-        std::array<subsystem::SwerveModule, 4> m_swerveModules;
+        std::array<subsystem::SwerveModule, 4> m_swerveModules
+        {
+            subsystem::SwerveModule{constants::swerve::frontLeftDriveCANid,  constants::swerve::frontLeftTurnCANid,  constants::swerve::frontLeftEncoderCANid,  constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion},
+            subsystem::SwerveModule{constants::swerve::frontRightDriveCANid, constants::swerve::frontRightTurnCANid, constants::swerve::frontRightEncoderCANid, constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion},
+            subsystem::SwerveModule{constants::swerve::backLeftDriveCANid,   constants::swerve::backLeftTurnCANid,   constants::swerve::backLeftEncoderCANid,   constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion},
+            subsystem::SwerveModule{constants::swerve::backRightDriveCANid,  constants::swerve::backRightTurnCANid,  constants::swerve::backRightEncoderCANid,  constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion}
+        };
 
-        frc::SwerveDriveKinematics<4> m_kinematics;
+        frc::SwerveDriveKinematics<4> m_kinematics
+        {
+            frc::Translation2d{+constants::swerve::wheelBase / 2, +constants::swerve::trackWidth / 2}, // Front Left
+            frc::Translation2d{+constants::swerve::wheelBase / 2, -constants::swerve::trackWidth / 2}, // Front Right
+            frc::Translation2d{-constants::swerve::wheelBase / 2, +constants::swerve::trackWidth / 2}, // Back Left
+            frc::Translation2d{-constants::swerve::wheelBase / 2, -constants::swerve::trackWidth / 2}  // Back Right
+        };
 
-        frc::SwerveDrivePoseEstimator<4> m_poseEstimator;   
+        frc::SwerveDrivePoseEstimator<4> m_poseEstimator
+        {
+            m_kinematics,                                 // Kinematics object
+            frc::Rotation2d(),                            // Initial gyro angle
+            std::array<frc::SwerveModulePosition, 4>{},   // Initial module positions
+            frc::Pose2d()                                 // Initial pose
+        };
+
+        frc::ChassisSpeeds m_desiredSpeeds{0_mps, 0_mps, 0_rad_per_s};
+
+        wpi::array<frc::SwerveModuleState, 4> m_desiredStates;
             
-        bool m_isFieldRelative;
+        bool m_isFieldRelative = true;
     
-        hardware::gyro::Navx m_gyro;
+        hardware::gyro::Navx m_gyro{};
 
-        PhotonVision m_vision;
-    
-        nt::StructArrayPublisher<frc::SwerveModuleState> m_loggedModuleStatePublisher;
-
-        nt::StructPublisher<frc::Pose2d>  m_loggedPosePublisher;
-
-        nt::StructPublisher<frc::ChassisSpeeds> m_loggedDesiredSpeedsPublisher;
+        PhotonVision m_vision
+        {
+            constants::vision::CameraName,
+            constants::vision::RobotToCam,
+            constants::vision::TagLayout,
+            constants::vision::SingleTagStdDevs,
+            constants::vision::MultiTagStdDevs,
+            [this] (frc::Pose2d pose, units::second_t timestamp, Eigen::Matrix<double, 3, 1> stddevs)
+            {
+                m_poseEstimator.AddVisionMeasurement(pose, timestamp, {stddevs[0], stddevs[1], stddevs[2]});
+            }
+        };
 };

@@ -86,8 +86,6 @@ namespace constants
 
         constexpr int     ballSensorDIOPort       = 0;
 
-        constexpr int     flywheelGearRatio       = 25; // ???
-
         // Motor Configurations
         constexpr hardware::motor::MotorConfiguration flywheelMotorConfig{
             30_A,           // Current Limit
@@ -109,6 +107,14 @@ namespace constants
             1.0, 0.0, 0.0,  // P, I , D
             0.0, 0.0, 0.0   // S, V, A
         };
+
+        constexpr double flywheelTolerancePercent = 0.05; // 5% tolerance
+
+        // Target Speeds TODO: TEST AND TUNE
+        constexpr units::turns_per_second_t targetFlywheelSpeed{1000};
+        constexpr units::turns_per_second_t targetIndexerSpeed{20};
+        constexpr units::turns_per_second_t targetKickerSpeed{40};
+
     }
     #pragma endregion
 
