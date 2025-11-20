@@ -10,15 +10,34 @@
 #include "subsystems/Volcano.h"
 #pragma endregion
 
-#pragma region VolcanoFlywheelOn(Volcano* volcano)
+#pragma region VolcanoFlywheelOn
 /// @brief Creates a command to turn the volcano flywheel on.
 /// @param volcano A pointer to the Volcano subsystem.
 /// @return A CommandPtr that turns the flywheel on.
-/// TODO: Need to be able to set the flywheel speed.
 inline frc2::CommandPtr SetVolcanoFlywheelSpeed(Volcano* volcano, units::turns_per_second_t speed)
 {
     // Create and return a FunctionalCommand that turns the flywheel on
     return frc2::InstantCommand{[volcano, speed] () { volcano->SetFlywheel(speed); }, { volcano }}.ToPtr();
+}
+#pragma endregion
+
+#pragma region VolcanoFlywheelOn
+/// @brief Creates a command to turn the volcano flywheel on to default speed.
+/// @param volcano A pointer to the Volcano subsystem.
+inline frc2::CommandPtr VolcanoFlywheelOn(Volcano* volcano)
+{
+    // Create and return a command that turns the flywheel on
+    return frc2::InstantCommand{[volcano] () { volcano->SetFlywheel(); }, { volcano }}.ToPtr();
+}
+#pragma endregion
+
+#pragma region VolcanoFlywheelOff
+/// @brief Creates a command to turn the volcano flywheel off.
+/// @param volcano A pointer to the Volcano subsystem.
+inline frc2::CommandPtr VolcanoFlywheelOff(Volcano* volcano)
+{
+    // Create and return a command that turns the flywheel off
+    return frc2::InstantCommand{[volcano] () { volcano->SetFlywheel(0_tps); }, { volcano }}.ToPtr();
 }
 #pragma endregion
 
@@ -28,7 +47,7 @@ inline frc2::CommandPtr SetVolcanoFlywheelSpeed(Volcano* volcano, units::turns_p
 inline frc2::CommandPtr VolcanoShootOneBall(Volcano* volcano)
 {
     // Turn on Flywheel and wait until at speed if its not already
-    return SetVolcanoFlywheelSpeed(volcano, 1000_tps).Until([volcano]() {
+    return VolcanoFlywheelOn(volcano).Until([volcano]() {
             return volcano->IsFlywheelAtSpeed();
         }
     // Then index and wait until the kick sensor is triggered if its not already
@@ -64,7 +83,7 @@ inline frc2::CommandPtr VolcanoShootOneBall(Volcano* volcano)
 inline frc2::CommandPtr VolcanoShootAllBalls(Volcano* volcano)
 {
     // Turn on Flywheel and wait until at speed if its not already
-    return SetVolcanoFlywheelSpeed(volcano, 1000_tps).Until([volcano]() {
+    return VolcanoFlywheelOn(volcano).Until([volcano]() {
             return volcano->IsFlywheelAtSpeed();
         }
     // Then activate everything, making all balls go through the system
@@ -72,7 +91,7 @@ inline frc2::CommandPtr VolcanoShootAllBalls(Volcano* volcano)
         frc2::InstantCommand{[volcano]() {
             volcano->SetIndexers(true);
             volcano->SetKicker(true);
-            volcano->SetFlywheel(1000_tps);
+            volcano->SetFlywheel();
         }, { volcano }}.ToPtr()
     );
 }
@@ -88,5 +107,37 @@ inline frc2::CommandPtr VolcanoStopAll(Volcano* volcano)
             volcano->SetKicker(false);
             volcano->SetFlywheel(0_tps);
         }, { volcano }}.ToPtr();
+}
+#pragma endregion
+
+#pragma region VolcanoVariableFlywheelSpeed
+/// @brief Creates a command to set the volcano flywheel to a variable speed.
+/// @param volcano A pointer to the Volcano subsystem.
+/// @param upSpeedFunc A function that raises the target speed by 100 turns per second
+/// @param downSpeedFunc A function that lowers the target speed by 100 turns per second
+inline frc2::CommandPtr VolcanoVariableFlywheelSpeed(
+    Volcano* volcano,
+    std::function<bool()> upSpeedFunc,
+    std::function<bool()> downSpeedFunc)
+{
+    // Create and return a RunCommand that sets the flywheel speed based on the input functions
+    return frc2::RunCommand(
+        [volcano, upSpeedFunc, downSpeedFunc]()
+        {
+            // Persists between each time the command is scheduled
+            static units::turns_per_second_t targetSpeed = constants::volcano::targetFlywheelSpeed;
+
+            if (upSpeedFunc())
+            {
+                targetSpeed += 100_tps;
+            }
+            else if (downSpeedFunc())
+            {
+                targetSpeed -= 100_tps;
+            }
+            volcano->SetFlywheel(targetSpeed);
+        },
+        { volcano }
+    ).ToPtr();
 }
 #pragma endregion

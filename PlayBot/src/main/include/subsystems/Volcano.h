@@ -1,3 +1,7 @@
+#pragma once
+
+#include "lib/Logging.h"
+
 #include "lib/hardware/motors/TalonFX.h"
 #include "lib/hardware/motors/SparkMax.h"
 
@@ -15,15 +19,15 @@ public:
 
     void SetIndexers(bool running);
 
-    void SetFlywheel(units::turns_per_second_t targetSpeed);
+    void SetFlywheel(units::turns_per_second_t targetSpeed = constants::volcano::targetFlywheelSpeed);
 
     bool IsBallDetected();
 
     bool IsFlywheelAtSpeed();
 
-private:
+    void Periodic() override;
 
-    
+private:
 
     hardware::motor::TalonFX  m_flywheelMotor
     {

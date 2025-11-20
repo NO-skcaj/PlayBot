@@ -13,7 +13,7 @@ Volcano::Volcano()
 /// @param running Whether the kicker is running or not.
 void Volcano::SetKicker(bool running)
 {
-    m_kickMotor.SetReferenceState(running ? 1.0 : 0.0); // TODO: REPLACE WITH REVOLUTION SETPOINT
+    m_kickMotor.SetReferenceState(running ? constants::volcano::targetKickerSpeed : 0.0_tps);
 }
 #pragma endregion
 
@@ -24,7 +24,7 @@ void Volcano::SetIndexers(bool ruinning)
 {
     for (auto& indexer : m_indexerMotors)
     {
-        indexer.SetReferenceState(ruinning ? 1.0 : 0.0); // REPLACE WITH REVOLUTION SETPOINT
+        indexer.SetReferenceState(ruinning ? constants::volcano::targetIndexerSpeed : 0.0_tps);
     }
 }
 #pragma endregion
@@ -33,7 +33,7 @@ void Volcano::SetIndexers(bool ruinning)
 /// @param targetSpeed - the speed we want it at
 void Volcano::SetFlywheel(units::turns_per_second_t targetSpeed)
 {
-    m_flywheelMotor.SetReferenceState(targetSpeed); // This is alright
+    m_flywheelMotor.SetReferenceState(targetSpeed);
     m_targetSpeed = targetSpeed;
 }
 #pragma endregion
@@ -41,7 +41,8 @@ void Volcano::SetFlywheel(units::turns_per_second_t targetSpeed)
 #pragma region IsBallDetected
 bool Volcano::IsBallDetected()
 {
-    return (bool) m_ballSensor;
+    // TODO: Check if the sensor returns true or false when a ball is detected
+    return m_ballSensor.Get();
 }
 #pragma endregion
 
@@ -50,6 +51,18 @@ bool Volcano::IsFlywheelAtSpeed()
 {
     auto flyWheelSpeed = m_flywheelMotor.GetVelocity();
     // Check if the flywheel speed is within 5% of the target speed
-    return std::abs(flyWheelSpeed.value() - m_targetSpeed.value()) <= m_targetSpeed.value() * 0.05;
+    return std::abs(flyWheelSpeed.value() - m_targetSpeed.value()) <= m_targetSpeed.value() * constants::volcano::flywheelSpeedTolerance;
+}
+#pragma endregion
+
+#pragma region Periodic
+// This method will be called once per scheduler run
+// Does logging
+void Volcano::Periodic()
+{
+    Log("Flywheel Speed (TPS)",        m_flywheelMotor.GetVelocity().value());
+    Log("Target Flywheel Speed (TPS)", m_targetSpeed.value());
+    Log("Ball Detected: ",               IsBallDetected());
+    Log("Flywheel At Speed: ",           IsFlywheelAtSpeed());
 }
 #pragma endregion

@@ -93,7 +93,8 @@ inline frc2::CommandPtr AlignToNearestTag(Chassis* chassis, frc::Transform2d tar
 { 
         frc::Pose2d targetPosition = chassis->GetNearestTag();
 
-        // Rotate offset
+        // Rotate offset and offset it relative to the target position's orientation
+        // This does actually work trust chat
         frc::Pose2d targetWithOffset{
             targetPosition.X() + targetOffset.Translation().X() * std::cos(targetPosition.Rotation().Radians().value()) 
                                - targetOffset.Translation().Y() * std::sin(targetPosition.Rotation().Radians().value()),

@@ -40,6 +40,8 @@ class RobotContainer
 
         frc::SlewRateLimiter<units::scalar> m_flywheelLimiter{1.0 / 0.5_s};  // Full throttle change in 0.5 seconds
 
+        bool                                m_isManualFlywheelControl = false;
+
         // Instantiate the robot subsystems
         Chassis                             m_chassis;
         Volcano                             m_volcano;
