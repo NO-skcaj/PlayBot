@@ -86,7 +86,7 @@ class Chassis : public frc2::SubsystemBase
 
         frc::ChassisSpeeds m_desiredSpeeds{0_mps, 0_mps, 0_rad_per_s};
 
-        wpi::array<frc::SwerveModuleState, 4> m_desiredStates;
+        wpi::array<frc::SwerveModuleState, 4> m_desiredStates = GetModuleStates();
             
         bool m_isFieldRelative = true;
     
@@ -99,6 +99,7 @@ class Chassis : public frc2::SubsystemBase
             constants::vision::TagLayout,
             constants::vision::SingleTagStdDevs,
             constants::vision::MultiTagStdDevs,
+            // Pose consumer to add vision measurements to the pose estimator
             [this] (frc::Pose2d pose, units::second_t timestamp, Eigen::Matrix<double, 3, 1> stddevs)
             {
                 m_poseEstimator.AddVisionMeasurement(pose, timestamp, {stddevs[0], stddevs[1], stddevs[2]});

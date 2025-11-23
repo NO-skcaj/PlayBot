@@ -118,6 +118,15 @@ namespace constants
     }
     #pragma endregion
 
+    #pragma region LED
+    namespace led
+    {
+        constexpr int length = 60U;
+
+        constexpr int port = 0;
+    }
+    #pragma endregion
+
     #pragma region Controller
     namespace controller
     {

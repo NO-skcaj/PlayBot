@@ -4,15 +4,14 @@
 
 #include "lib/hardware/hardware.h"
 
-namespace hardware
+namespace hardware::encoder
 {
-    namespace encoder
+    
+    class Encoder : public Hardware
     {
-        class Encoder : public Hardware
-        {
-            public:
+        public:
 
-                virtual units::turn_t GetTurns() { return 0_tr; };
-        };
-    }
+            virtual units::turn_t GetTurns() { return 0_tr; };
+    };
+
 }
