@@ -10,6 +10,11 @@
 
 #include <frc/filter/SlewRateLimiter.h>
 
+#include "subsystems/Chassis.h"
+#include "subsystems/Volcano.h"
+
+#include "lib/hardware/LEDs/LED.h"
+
 #include "commands/ChassisCommands.h"
 #include "commands/VolcanoCommands.h"
 
@@ -45,5 +50,7 @@ class RobotContainer
         // Instantiate the robot subsystems
         Chassis                             m_chassis;
         Volcano                             m_volcano;
+
+        LED<constants::led::length>         m_led = LED<constants::led::length>(constants::led::port);
 };
 

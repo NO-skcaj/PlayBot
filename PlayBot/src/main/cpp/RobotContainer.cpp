@@ -27,6 +27,8 @@ RobotContainer::RobotContainer()
     // Configure the chassis default command
     m_chassis.SetDefaultCommand(ChassisDrive(&m_chassis, GetChassisSpeeds()));
 
+    m_led.SetPattern(LEDType::GRADIENT, {frc::Color::kPurple, frc::Color::kGold});
+
     // Array of run-once controls, organized like this for simplicity and readability
     std::pair<Button, frc2::CommandPtr> runOnceControls[] =
     {
@@ -52,12 +54,12 @@ RobotContainer::RobotContainer()
     // Configure the manual flywheel control, this control scheme may be a bit schizo
 
     frc2::Trigger([this] () { return m_driveController.GetPOV() == constants::controller::Pov_180; })
-        .OnTrue([this]() { m_isManualFlywheelControl = true; });
+        .OnTrue(frc2::InstantCommand{[this]() { m_isManualFlywheelControl = true; }}.ToPtr());
     frc2::Trigger([this] () { return m_driveController.GetPOV() == constants::controller::Pov_0; })
-        .OnTrue([this]() { m_isManualFlywheelControl = false; });
+        .OnTrue(frc2::InstantCommand{[this]() { m_isManualFlywheelControl = false; }}.ToPtr());
 
     // While manual mode is enabled, the speed is controlled by the D-pad up and down
-    frc2::Trigger([m_isManualFlywheelControl]() { return m_isManualFlywheelControl; })
+    frc2::Trigger([this]() { return m_isManualFlywheelControl; })
         .WhileTrue(std::move(VolcanoVariableFlywheelSpeed(
             &m_volcano,
             [this] () { return m_driveController.GetPOV() == constants::controller::Pov_90; }, // Up on D-pad increases speed

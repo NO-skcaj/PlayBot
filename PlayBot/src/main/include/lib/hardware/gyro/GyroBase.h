@@ -6,18 +6,17 @@
 
 #include "lib/hardware/hardware.h"
 
-namespace hardware
+namespace hardware::gyro
 {
-    namespace gyro
-    {
-        class GyroBase : public Hardware
-        {
-            public:
 
-                virtual frc::Rotation3d GetRotation()                     = 0;
-                virtual frc::Rotation3d GetOffset()                       = 0;
-                virtual void            ResetYaw()                        = 0;
-                virtual void            SetOffset(frc::Rotation3d offset) = 0;
-        };
-    }
+    class GyroBase : public Hardware
+    {
+        public:
+
+            virtual frc::Rotation3d GetRotation()                     = 0;
+            virtual frc::Rotation3d GetOffset()                       = 0;
+            virtual void            ResetYaw()                        = 0;
+            virtual void            SetOffset(frc::Rotation3d offset) = 0;
+    };
+    
 }

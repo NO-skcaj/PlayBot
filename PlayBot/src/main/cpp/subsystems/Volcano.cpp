@@ -51,7 +51,7 @@ bool Volcano::IsFlywheelAtSpeed()
 {
     auto flyWheelSpeed = m_flywheelMotor.GetVelocity();
     // Check if the flywheel speed is within 5% of the target speed
-    return std::abs(flyWheelSpeed.value() - m_targetSpeed.value()) <= m_targetSpeed.value() * constants::volcano::flywheelSpeedTolerance;
+    return std::abs(flyWheelSpeed.value() - m_targetSpeed.value()) <= m_targetSpeed.value() * constants::volcano::flywheelTolerancePercent;
 }
 #pragma endregion
 

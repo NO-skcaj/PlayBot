@@ -4,32 +4,31 @@
 
 #include "lib/hardware/encoders/Encoder.h"
 
-namespace hardware
+namespace hardware::encoder
 {
-    namespace encoder
+    
+    // CANCoder class to support the CANCoder
+    class CANCoder : public Encoder
     {
-        // CANCoder class to support the CANCoder
-        class CANCoder : public Encoder
-        {
-            public:
+        public:
 
-                // Constructor for the CANCoder class
-                // The CANCoder is a CAN device, so the CAN ID is passed in
-                CANCoder(CANid_t CANid) : m_encoder{CANid, "rio"}
-                {
+            // Constructor for the CANCoder class
+            // The CANCoder is a CAN device, so the CAN ID is passed in
+            CANCoder(CANid_t CANid) : m_encoder{CANid, "rio"}
+            {
 
-                }
+            }
 
-                // Configure the CANCoder
-                units::turn_t GetTurns() override
-                {
-                    // Get the absolute position from the CANCoder and return it as turns
-                    return m_encoder.GetAbsolutePosition().GetValue();
-                }
+            // Configure the CANCoder
+            units::turn_t GetTurns() override
+            {
+                // Get the absolute position from the CANCoder and return it as turns
+                return m_encoder.GetAbsolutePosition().GetValue();
+            }
 
-            private:
-            
-                ctre::phoenix6::hardware::CANcoder m_encoder;
-        };
-    }
+        private:
+        
+            ctre::phoenix6::hardware::CANcoder m_encoder;
+    };
+
 }
