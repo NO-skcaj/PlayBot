@@ -13,17 +13,26 @@ Chassis::Chassis()
 /// @param speeds The desired chassis speeds.
 void Chassis::Drive(const frc::ChassisSpeeds& speeds)
 {
+    frc::SmartDashboard::PutNumber("Drive X",     speeds.vx.value());
+    frc::SmartDashboard::PutNumber("Drive Y",     speeds.vy.value());
+    frc::SmartDashboard::PutNumber("Drive Omega", speeds.omega.value()); 
+
     // Log the desired speeds
     m_desiredSpeeds = speeds;
 
     // Set the module states
     m_desiredStates = m_kinematics.ToSwerveModuleStates(m_isFieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(speeds, GetHeading()) : speeds);
 
-    // Set the desired state for each swerve module
-    m_swerveModules[0].SetDesiredState(m_desiredStates[0]);
-    m_swerveModules[1].SetDesiredState(m_desiredStates[1]);
-    m_swerveModules[2].SetDesiredState(m_desiredStates[2]);
-    m_swerveModules[3].SetDesiredState(m_desiredStates[3]);
+    // Loop through each swerve module
+    for (int swerveModule = 0; swerveModule < 4; swerveModule++)
+    {
+        // Set the desired state for each swerve module
+        m_swerveModules[swerveModule].SetDesiredState(m_desiredStates[swerveModule]);  
+
+        // Log the speed and direction for each module
+        frc::SmartDashboard::PutNumber("Module " + std::to_string(swerveModule) + " Speed",     m_desiredStates[swerveModule].speed.value());
+        frc::SmartDashboard::PutNumber("Module " + std::to_string(swerveModule) + " Direction", m_desiredStates[swerveModule].angle.Degrees().value());
+    }
 
     // Simulate the gyro in simulation
     if (frc::RobotBase::IsSimulation())
@@ -57,10 +66,10 @@ void Chassis::ResetWheelAnglesToZero()
 void Chassis::ResetDriveEncoders()
 {
     // Reset the swerve motor encoders
-    m_swerveModules[0].ResetDriveEncoder();
-    m_swerveModules[1].ResetDriveEncoder();
-    m_swerveModules[2].ResetDriveEncoder();
-    m_swerveModules[3].ResetDriveEncoder();
+    for (auto& swerveModule : m_swerveModules)
+    {
+        swerveModule.ResetDriveEncoder();
+    }
 }
 #pragma endregion
 
@@ -146,7 +155,7 @@ void Chassis::Periodic()
     m_vision.Periodic();
 
     // Logging
-    Log("Swerve Module States ",    GetModuleStates());
+    Log("Swerve Module States ",         GetModuleStates());
     Log("Desired Swerve Module States ", m_desiredStates);
 
     Log("Swerve Module Positions ", GetModulePositions());

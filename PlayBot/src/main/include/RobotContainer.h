@@ -10,6 +10,8 @@
 
 #include <frc/filter/SlewRateLimiter.h>
 
+#include <photon/PhotonCamera.h>
+
 #include "subsystems/Chassis.h"
 #include "subsystems/Volcano.h"
 
@@ -28,6 +30,11 @@ class RobotContainer
 
         // Method that returns a pointer to the singleton instance of the RobotContainer class
         static RobotContainer *GetInstance();
+
+        photon::PhotonCamera &GetRightCamera() { return cameraRight; }
+        photon::PhotonCamera &GetLeftCamera()  { return cameraLeft;  }
+
+        void ProcessCameraResults(photon::PhotonCamera& camera, const std::string& cameraName);
 
     private:
 
@@ -52,5 +59,7 @@ class RobotContainer
         Volcano                             m_volcano;
 
         LED<constants::led::length>         m_led = LED<constants::led::length>(constants::led::port);
-};
 
+        photon::PhotonCamera cameraRight{"CameraRight"};
+        photon::PhotonCamera cameraLeft{"CameraLeft"};
+};

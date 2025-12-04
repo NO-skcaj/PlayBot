@@ -28,14 +28,14 @@ class Chassis : public frc2::SubsystemBase
     public:
 
         explicit                                 Chassis();
-    
+
         void                                     Drive(const frc::ChassisSpeeds& speeds);
-    
+
         void                                     ZeroHeading();
-        
+    
         void                                     ResetWheelAnglesToZero();
         void                                     ResetDriveEncoders();
-    
+
         wpi::array<frc::SwerveModuleState, 4>    GetModuleStates();
         wpi::array<frc::SwerveModulePosition, 4> GetModulePositions();
     
@@ -62,10 +62,18 @@ class Chassis : public frc2::SubsystemBase
         
         std::array<subsystem::SwerveModule, 4> m_swerveModules
         {
-            subsystem::SwerveModule{constants::swerve::frontLeftDriveCANid,  constants::swerve::frontLeftTurnCANid,  constants::swerve::frontLeftEncoderCANid,  constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion},
-            subsystem::SwerveModule{constants::swerve::frontRightDriveCANid, constants::swerve::frontRightTurnCANid, constants::swerve::frontRightEncoderCANid, constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion},
-            subsystem::SwerveModule{constants::swerve::backLeftDriveCANid,   constants::swerve::backLeftTurnCANid,   constants::swerve::backLeftEncoderCANid,   constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion},
-            subsystem::SwerveModule{constants::swerve::backRightDriveCANid,  constants::swerve::backRightTurnCANid,  constants::swerve::backRightEncoderCANid,  constants::swerve::driveMotorConfig, constants::swerve::turnMotorConfig, constants::swerve::driveConversion, constants::swerve::angleConversion}
+            subsystem::SwerveModule{constants::swerve::frontLeftDriveCANid,  constants::swerve::frontLeftTurnCANid,  constants::swerve::frontLeftEncoderCANid,  
+                                    constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig, 
+                                    constants::swerve::driveConversion,      constants::swerve::angleConversion},
+            subsystem::SwerveModule{constants::swerve::frontRightDriveCANid, constants::swerve::frontRightTurnCANid, constants::swerve::frontRightEncoderCANid,
+                                    constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig,
+                                    constants::swerve::driveConversion,      constants::swerve::angleConversion},
+            subsystem::SwerveModule{constants::swerve::backLeftDriveCANid,   constants::swerve::backLeftTurnCANid,   constants::swerve::backLeftEncoderCANid,
+                                    constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig, 
+                                    constants::swerve::driveConversion,      constants::swerve::angleConversion},
+            subsystem::SwerveModule{constants::swerve::backRightDriveCANid,  constants::swerve::backRightTurnCANid,  constants::swerve::backRightEncoderCANid,  
+                                    constants::swerve::driveMotorConfig,     constants::swerve::turnMotorConfig, 
+                                    constants::swerve::driveConversion,      constants::swerve::angleConversion}
         };
 
         frc::SwerveDriveKinematics<4> m_kinematics
@@ -84,13 +92,13 @@ class Chassis : public frc2::SubsystemBase
             frc::Pose2d()                                 // Initial pose
         };
 
-        frc::ChassisSpeeds m_desiredSpeeds{0_mps, 0_mps, 0_rad_per_s};
+        frc::ChassisSpeeds                    m_desiredSpeeds{0_mps, 0_mps, 0_rad_per_s};
 
         wpi::array<frc::SwerveModuleState, 4> m_desiredStates = GetModuleStates();
             
-        bool m_isFieldRelative = true;
+        bool                                  m_isFieldRelative = true;
     
-        hardware::gyro::Navx m_gyro{};
+        hardware::gyro::Navx                  m_gyro{};
 
         PhotonVision m_vision
         {
@@ -99,6 +107,7 @@ class Chassis : public frc2::SubsystemBase
             constants::vision::TagLayout,
             constants::vision::SingleTagStdDevs,
             constants::vision::MultiTagStdDevs,
+
             // Pose consumer to add vision measurements to the pose estimator
             [this] (frc::Pose2d pose, units::second_t timestamp, Eigen::Matrix<double, 3, 1> stddevs)
             {

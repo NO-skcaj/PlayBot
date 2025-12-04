@@ -36,9 +36,10 @@ inline frc2::CommandPtr ChassisZeroHeading(Chassis* chassis)
 inline frc2::CommandPtr ChassisDrive(Chassis* chassis, std::function<frc::ChassisSpeeds()> chassisSpeedsSupplier)
 {
     // Create and return a repeating InstantCommand that drives the chassis
-    return frc2::InstantCommand{
-        [chassis, chassisSpeedsSupplier] () { chassis->Drive(chassisSpeedsSupplier()); }, // Execution function (runs repeatedly while the command is active)
-        { chassis }                                                                                      // Requirements (subsystems required by this command)
+    return frc2::InstantCommand
+    {
+        [chassis, chassisSpeedsSupplier] () { chassis->Drive(chassisSpeedsSupplier()); },  // Execution function (runs repeatedly while the command is active)
+        { chassis }                                                                        // Requirements (subsystems required by this command)
     }.ToPtr().Repeatedly();
 }
 #pragma endregion
@@ -53,7 +54,7 @@ inline frc2::CommandPtr ChassisDrivePose(Chassis* chassis, std::string CommandNa
     //return AutoBuilder::followPath(PathPlannerPath::fromPathFile(CommandName));
 
     // Note: Temporary fix for pathplanner not working correctly when called immediately after another command
-    return frc2::WaitCommand(0.1_s).ToPtr(); 
+    return frc2::WaitCommand(0.1_s).ToPtr();
 }
 #pragma endregion
 
@@ -67,13 +68,13 @@ inline frc2::CommandPtr ChassisDrivePose(Chassis* chassis, frc::Pose2d targetPos
     // return AutoBuilder::pathfindToPose(targetPose, constants::PathPlanner::Constraints);
 
     // Note: Temporary fix for pathplanner not working correctly when called immediately after another command
-    return frc2::WaitCommand(0.1_s).ToPtr(); 
+    return frc2::WaitCommand(0.1_s).ToPtr();
 }
 #pragma endregion
 
 #pragma region FlipFieldCentricity(Chassis* chassis)
 /// @brief Creates a command to flip the field centricity of the chassis.
-/// @param chassis A pointer to the chassis subsystem. 
+/// @param chassis A pointer to the chassis subsystem.
 /// @return A CommandPtr that flips the field centricity.
 inline frc2::CommandPtr FlipFieldCentricity(Chassis* chassis)
 {
@@ -90,16 +91,16 @@ inline frc2::CommandPtr FlipFieldCentricity(Chassis* chassis)
 // It will use the AprilTag's pose to determine the target position and rotation
 // The robot will drive towards the target position and rotate to face the target rotation
 inline frc2::CommandPtr AlignToNearestTag(Chassis* chassis, frc::Transform2d targetOffset)
-{ 
+{
         frc::Pose2d targetPosition = chassis->GetNearestTag();
 
         // Rotate offset and offset it relative to the target position's orientation
         // This does actually work trust chat
         frc::Pose2d targetWithOffset{
-            targetPosition.X() + targetOffset.Translation().X() * std::cos(targetPosition.Rotation().Radians().value()) 
+            targetPosition.X() + targetOffset.Translation().X() * std::cos(targetPosition.Rotation().Radians().value())
                                - targetOffset.Translation().Y() * std::sin(targetPosition.Rotation().Radians().value()),
 
-            targetPosition.Y() + targetOffset.Translation().X() * std::sin(targetPosition.Rotation().Radians().value()) 
+            targetPosition.Y() + targetOffset.Translation().X() * std::sin(targetPosition.Rotation().Radians().value())
                                + targetOffset.Translation().Y() * std::cos(targetPosition.Rotation().Radians().value()),
 
             targetPosition.Rotation().Degrees() + targetOffset.Rotation().Degrees()

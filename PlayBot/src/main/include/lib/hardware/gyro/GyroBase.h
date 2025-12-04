@@ -8,7 +8,6 @@
 
 namespace hardware::gyro
 {
-
     class GyroBase : public Hardware
     {
         public:
@@ -18,5 +17,4 @@ namespace hardware::gyro
             virtual void            ResetYaw()                        = 0;
             virtual void            SetOffset(frc::Rotation3d offset) = 0;
     };
-    
 }

@@ -7,14 +7,13 @@ using namespace subsystem;
 /// @param driveMotorCanId The CAN ID for the swerve module drive motor.
 /// @param angleMotorCanId The CAN ID for the swerve module angle motor.
 /// @param angleEncoderCanId The CAN ID for the swerve module angle encoder.
-/// @param turnConfig The motor configuration for the angle motor.
 /// @param driveConfig The motor configuration for the drive motor.
+/// @param turnConfig The motor configuration for the angle motor.
 /// @param driveMotorConversion The conversion factor for the drive motor (wheel circumference / (gear ratio * motor revolutions)).
 /// @param angleMotorConversion The conversion factor for the angle motor (motor revolutions / (2 * pi)).
 SwerveModule::SwerveModule(int driveMotorCanId, int angleMotorCanId, int angleEncoderCanId, 
-                           hardware::motor::MotorConfiguration turnConfig, hardware::motor::MotorConfiguration driveConfig,
-                           units::meter_t  driveMotorConversion,
-                           units::radian_t angleMotorConversion) :
+                           hardware::motor::MotorConfiguration driveConfig, hardware::motor::MotorConfiguration turnConfig,
+                           units::meter_t  driveMotorConversion, units::radian_t angleMotorConversion) :
         m_driveMotor          {driveMotorCanId, driveConfig, frc::DCMotor::KrakenX60()}, // The MOI or moments of inertias for simulation, and its not accurate of the actual robot
         m_angleMotor          {angleMotorCanId, turnConfig,  frc::DCMotor::NEO()},
         m_angleAbsoluteEncoder{angleEncoderCanId},
@@ -35,6 +34,7 @@ void SwerveModule::SetDesiredState(frc::SwerveModuleState& desiredState)
 {
     // Optimize the reference state to avoid spinning further than 90 degrees.
     desiredState.Optimize(GetPosition().angle);
+
     // Some WPI magic math cosine to prevent jittering
     desiredState.speed = units::meters_per_second_t{desiredState.speed.value() * std::cos(desiredState.angle.Radians().value() - GetPosition().angle.Radians().value())};
 

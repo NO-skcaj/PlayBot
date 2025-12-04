@@ -19,7 +19,7 @@ namespace hardware
         {
             public:
 
-                Navx(); 
+                Navx();
 
                 frc::Rotation3d GetRotation() override;                         // Get the rotation of the gyro
                 frc::Rotation3d GetOffset()   override;                         // Get the offset of the gyro
@@ -31,7 +31,6 @@ namespace hardware
             protected:
 
                 units::radian_t             m_simYaw{0.0};                      // Simulated yaw angle
-
                 units::radians_per_second_t m_simRate{0.0};                     // Simulated rate of change
 
             private:

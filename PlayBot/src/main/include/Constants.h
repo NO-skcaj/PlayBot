@@ -24,31 +24,33 @@ namespace constants
     namespace swerve
     {
         // Motor and encoders CAN IDs
-        constexpr CANid_t frontLeftDriveCANid = 1;
-        constexpr CANid_t frontLeftTurnCANid = 2;
-        constexpr CANid_t frontLeftEncoderCANid= 9;
+        constexpr CANid_t frontLeftDriveCANid    = 10;
+        constexpr CANid_t frontLeftTurnCANid     = 20;
+        constexpr CANid_t frontLeftEncoderCANid  = 30;
 
-        constexpr CANid_t frontRightDriveCANid = 3;
-        constexpr CANid_t frontRightTurnCANid = 4;
-        constexpr CANid_t frontRightEncoderCANid = 10;
+        constexpr CANid_t frontRightDriveCANid   = 11;
+        constexpr CANid_t frontRightTurnCANid    = 21;
+        constexpr CANid_t frontRightEncoderCANid = 31;
 
-        constexpr CANid_t backLeftDriveCANid = 5;
-        constexpr CANid_t backLeftTurnCANid = 6;
-        constexpr CANid_t backLeftEncoderCANid = 11;
+        constexpr CANid_t backLeftDriveCANid     = 13;
+        constexpr CANid_t backLeftTurnCANid      = 23;
+        constexpr CANid_t backLeftEncoderCANid   = 33;
 
-        constexpr CANid_t backRightDriveCANid = 7;
-        constexpr CANid_t backRightTurnCANid = 8;
-        constexpr CANid_t backRightEncoderCANid = 12;
+        constexpr CANid_t backRightDriveCANid    = 12;
+        constexpr CANid_t backRightTurnCANid     = 22;
+        constexpr CANid_t backRightEncoderCANid  = 32;
 
         // PID, feedforward, and other configurations for the motors
-        constexpr hardware::motor::MotorConfiguration driveMotorConfig{
+        constexpr hardware::motor::MotorConfiguration driveMotorConfig
+        {
             40_A,            // Current Limit
             true,            // Brake Mode
             0.1, 0.02, 0.0,  // P, I , D
             0.0, 0.0, 0.0    // S, V, A
         };
 
-        constexpr hardware::motor::MotorConfiguration turnMotorConfig{
+        constexpr hardware::motor::MotorConfiguration turnMotorConfig
+        {
             30_A,           // Current Limit
             true,           // Brake Mode
             1.0, 0.0, 0.2,  // P, I , D
@@ -56,10 +58,10 @@ namespace constants
         };
 
         // All encoders are going to be slightly off, this corrects that
-        constexpr units::radian_t frontLeftForwardAngle {-0.193604 * 2 * std::numbers::pi}; // THESE ARE VALID FOR THE 2025 COMP BOT
-        constexpr units::radian_t frontRightForwardAngle{-0.422119 * 2 * std::numbers::pi}; // THESE ARE VALID FOR THE 2025 COMP BOT
-        constexpr units::radian_t rearLeftForwardAngle  {-0.174561 * 2 * std::numbers::pi}; // THESE ARE VALID FOR THE 2025 COMP BOT
-        constexpr units::radian_t rearRightForwardAngle { 0.268555 * 2 * std::numbers::pi}; // THESE ARE VALID FOR THE 2025 COMP BOT
+        constexpr units::radian_t frontLeftForwardAngle { 0.000000 * 2 * std::numbers::pi};
+        constexpr units::radian_t frontRightForwardAngle{ 0.000000 * 2 * std::numbers::pi};
+        constexpr units::radian_t rearLeftForwardAngle  { 0.000000 * 2 * std::numbers::pi};
+        constexpr units::radian_t rearRightForwardAngle { 0.000000 * 2 * std::numbers::pi};
 
         // These make sure to limit how fast the robot can go
         constexpr units::meters_per_second_t  maxSpeed          {4};
@@ -79,29 +81,32 @@ namespace constants
     namespace volcano
     {
         // CAN IDs
-        constexpr CANid_t flywheelMotorCANid      = 20;
-        constexpr CANid_t firstIndexerMotorCANid  = 21;
-        constexpr CANid_t secondIndexerMotorCANid = 22;
-        constexpr CANid_t kickerMotorCANid        = 23;
+        constexpr CANid_t flywheelMotorCANid      = 40;
+        constexpr CANid_t firstIndexerMotorCANid  = 41;
+        constexpr CANid_t secondIndexerMotorCANid = 42;
+        constexpr CANid_t kickerMotorCANid        = 43;
 
-        constexpr int     ballSensorDIOPort       = 0;
+        constexpr int     ballSensorDIOPort       =  0;
 
         // Motor Configurations
-        constexpr hardware::motor::MotorConfiguration flywheelMotorConfig{
+        constexpr hardware::motor::MotorConfiguration flywheelMotorConfig
+        {
             30_A,           // Current Limit
             false,          // Brake Mode
             5.0, 0.0, 0.0,  // P, I , D
             0.0, 2.0, 0.0   // S, V, A
         };
 
-        constexpr hardware::motor::MotorConfiguration indexerMotorConfig{
+        constexpr hardware::motor::MotorConfiguration indexerMotorConfig
+        {
             30_A,           // Current Limit
             true,           // Brake Mode
             1.0, 0.0, 0.0,  // P, I , D
             0.0, 0.0, 0.0   // S, V, A
         };
 
-        constexpr hardware::motor::MotorConfiguration kickMotorConfig{
+        constexpr hardware::motor::MotorConfiguration kickMotorConfig
+        {
             30_A,           // Current Limit
             true,           // Brake Mode
             1.0, 0.0, 0.0,  // P, I , D
@@ -114,7 +119,6 @@ namespace constants
         constexpr units::turns_per_second_t targetFlywheelSpeed{1000};
         constexpr units::turns_per_second_t targetIndexerSpeed{20};
         constexpr units::turns_per_second_t targetKickerSpeed{40};
-
     }
     #pragma endregion
 
@@ -123,7 +127,7 @@ namespace constants
     {
         constexpr int length = 60U;
 
-        constexpr int port = 0;
+        constexpr int port   = 0;
     }
     #pragma endregion
 
@@ -165,7 +169,7 @@ namespace constants
     #pragma endregion
 
     #pragma region Vision
-    namespace vision 
+    namespace vision
     {
         constexpr std::string_view            CameraName{"PhotonCamera"};
 
@@ -174,7 +178,6 @@ namespace constants
         const     frc::AprilTagFieldLayout    TagLayout = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2025ReefscapeAndyMark);
 
         const     Eigen::Matrix<double, 3, 1> SingleTagStdDevs{4, 4, 8};
-
         const     Eigen::Matrix<double, 3, 1> MultiTagStdDevs{0.5, 0.5, 1};
 
         namespace AprilTagLocations

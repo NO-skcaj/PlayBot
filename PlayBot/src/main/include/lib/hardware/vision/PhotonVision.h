@@ -45,25 +45,22 @@ class PhotonVision
 {
     public:
 
-        PhotonVision(
-            std::string_view         cameraName,
-            frc::Transform3d         robotToCamPose,
-            frc::AprilTagFieldLayout tagLayout,
-            Eigen::Matrix<double, 3, 1> singleTagStdDevs,
-            Eigen::Matrix<double, 3, 1> multiTagStdDevs,
-            std::function<void(frc::Pose2d, units::second_t, Eigen::Matrix<double, 3, 1>)> estConsumer
-        )
-            : cameraName{cameraName},
-              tagLayout{tagLayout},
-              photonEstimator{ 
+        PhotonVision(std::string_view           cameraName,
+                    frc::Transform3d            robotToCamPose,
+                    frc::AprilTagFieldLayout    tagLayout,
+                    Eigen::Matrix<double, 3, 1> singleTagStdDevs,
+                    Eigen::Matrix<double, 3, 1> multiTagStdDevs,
+                    std::function<void(frc::Pose2d, units::second_t, Eigen::Matrix<double, 3, 1>)> estConsumer) :
+            cameraName{cameraName}, tagLayout{tagLayout}, photonEstimator
+            { 
                 tagLayout, 
                 photon::PoseStrategy::MULTI_TAG_PNP_ON_COPROCESSOR, 
                 robotToCamPose
-              },
-              camera{cameraName},
-              singleTagStdDevs{singleTagStdDevs},
-              multiTagStdDevs{multiTagStdDevs},
-              estConsumer{estConsumer}
+            },
+            camera{cameraName},
+            singleTagStdDevs{singleTagStdDevs},
+            multiTagStdDevs{multiTagStdDevs},
+            estConsumer{estConsumer}
         {
             photonEstimator.SetMultiTagFallbackStrategy(photon::PoseStrategy::LOWEST_AMBIGUITY);
 
@@ -108,9 +105,7 @@ class PhotonVision
                 {
                     if (visionEst)
                     {
-                        GetSimDebugField()
-                            .GetObject("VisionEstimation")
-                            ->SetPose(visionEst->estimatedPose.ToPose2d());
+                        GetSimDebugField().GetObject("VisionEstimation")->SetPose(visionEst->estimatedPose.ToPose2d());
                     }
                     else
                     {
@@ -129,9 +124,9 @@ class PhotonVision
         Eigen::Matrix<double, 3, 1> GetEstimationStdDevs(frc::Pose2d estimatedPose)
         {
             Eigen::Matrix<double, 3, 1> estStdDevs = constants::vision::SingleTagStdDevs;
-            auto targets = GetLatestResult().GetTargets();
-            int numTags = 0;
-            units::meter_t avgDist = 0_m;
+            auto                        targets    = GetLatestResult().GetTargets();
+            int                         numTags    = 0;
+            units::meter_t              avgDist    = 0_m;
 
             for (const auto &tgt : targets)
             {
@@ -140,8 +135,7 @@ class PhotonVision
                 if (tagPose)
                 {
                     numTags++;
-                    avgDist += tagPose->ToPose2d().Translation().Distance(
-                        estimatedPose.Translation());
+                    avgDist += tagPose->ToPose2d().Translation().Distance(estimatedPose.Translation());
                 }
             }
 
@@ -206,5 +200,6 @@ class PhotonVision
 
         // The most recent result, cached for calculating std devs
         photon::PhotonPipelineResult                 m_latestResult;
+        
         std::function<void(frc::Pose2d, units::second_t, Eigen::Matrix<double, 3, 1>)> estConsumer;
 };

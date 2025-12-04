@@ -6,7 +6,7 @@
 
 namespace hardware::encoder
 {
-    
+
     // CANCoder class to support the CANCoder
     class CANCoder : public Encoder
     {
@@ -18,7 +18,7 @@ namespace hardware::encoder
             {
 
             }
-
+            
             // Configure the CANCoder
             units::turn_t GetTurns() override
             {
@@ -30,5 +30,4 @@ namespace hardware::encoder
         
             ctre::phoenix6::hardware::CANcoder m_encoder;
     };
-
 }

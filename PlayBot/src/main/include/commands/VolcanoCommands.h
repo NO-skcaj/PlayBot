@@ -41,7 +41,7 @@ inline frc2::CommandPtr VolcanoFlywheelOff(Volcano* volcano)
 }
 #pragma endregion
 
-#pragma region VolcanoShootAllBalls(Volcano* volcano)
+#pragma region VolcanoShootOneBall(Volcano* volcano)
 /// @brief Creates a command to shoot one ball from the volcano.
 /// @param volcano A pointer to the Volcano subsystem.
 inline frc2::CommandPtr VolcanoShootOneBall(Volcano* volcano)
@@ -83,9 +83,7 @@ inline frc2::CommandPtr VolcanoShootOneBall(Volcano* volcano)
 inline frc2::CommandPtr VolcanoShootAllBalls(Volcano* volcano)
 {
     // Turn on Flywheel and wait until at speed if its not already
-    return VolcanoFlywheelOn(volcano).Until([volcano]() {
-            return volcano->IsFlywheelAtSpeed();
-        }
+    return VolcanoFlywheelOn(volcano).Until([volcano]() { return volcano->IsFlywheelAtSpeed(); }
     // Then activate everything, making all balls go through the system
     ).AndThen(
         frc2::InstantCommand{[volcano]() {

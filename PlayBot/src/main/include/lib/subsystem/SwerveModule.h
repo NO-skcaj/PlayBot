@@ -40,8 +40,8 @@ namespace subsystem
     {
         public:
 
-            explicit                   SwerveModule(CANid_t driveMotorCanId, CANid_t angleMotorCanId, CANid_t angleEncoderCanId, 
-                                                    hardware::motor::MotorConfiguration turnConfig, hardware::motor::MotorConfiguration driveConfig,
+            explicit                   SwerveModule(CANid_t driveMotorCanId, CANid_t angleMotorCanId, CANid_t angleEncoderCanId,
+                                                    hardware::motor::MotorConfiguration driveConfig, hardware::motor::MotorConfiguration turnConfig,
                                                     units::meter_t driveMotorConversion, units::radian_t angleMotorConversion);
 
             void                       SetDesiredState(frc::SwerveModuleState& state);     // Sets the desired state for the module
