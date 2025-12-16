@@ -39,7 +39,7 @@ class RobotContainer
         // Private class constructor to configure the robot and SmartDashboard configuration
         RobotContainer();
 
-        std::function<frc::ChassisSpeeds()> GetChassisSpeeds();
+        frc::ChassisSpeeds                  GetChassisSpeeds();
 
         double                              GetExponentialValue(double joystickValue, double exponent);
             

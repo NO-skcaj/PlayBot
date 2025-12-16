@@ -29,7 +29,7 @@ RobotContainer::RobotContainer()
         [this]()
         {
             // Call the chassis drive method with the desired speeds
-            m_chassis.Drive(GetChassisSpeeds()());  // Add () to invoke the function
+            m_chassis.Drive(GetChassisSpeeds());  // Add () to invoke the function
         },
         {&m_chassis} // Subsystem requirements
     ));
@@ -68,23 +68,26 @@ RobotContainer::RobotContainer()
             [this] () { return m_driveController.GetPOV() == constants::controller::Pov_90; }, // Up on D-pad increases speed
             [this] () { return m_driveController.GetPOV() == constants::controller::Pov_270; } // Down on D-pad decreases speed
         )));
+
+
+    cs::UsbCamera camera = frc::CameraServer::StartAutomaticCapture();
+
+    // Set the resolution and frame rate of the camera
+    camera.SetResolution(640, 480); // Set resolution to 640x480
+    camera.SetFPS(30);             // Set frame rate to 30 FPS
 }
 #pragma endregion
 
 #pragma region GetChassisSpeeds
 /// @brief Method to return the chassis speeds based on joystick inputs.
 /// @return The chassis speeds based on joystick inputs.
-std::function<frc::ChassisSpeeds()> RobotContainer::GetChassisSpeeds()
+frc::ChassisSpeeds RobotContainer::GetChassisSpeeds()
 {
     // Return the chassis speeds based on joystick inputs
-    return [this] () -> frc::ChassisSpeeds
-    {
-        // Return the chassis speeds based on joystick inputs
-        return frc::ChassisSpeeds{
-            -constants::swerve::maxSpeed           * frc::ApplyDeadband(m_driveController.GetRawAxis(1), constants::controller::TranslationDeadZone),
-            -constants::swerve::maxSpeed           * frc::ApplyDeadband(m_driveController.GetRawAxis(0), constants::controller::TranslationDeadZone),
-             constants::swerve::maxAngularVelocity * frc::ApplyDeadband(m_driveController.GetRawAxis(4), constants::controller::RotateDeadZone)
-        };
+    return frc::ChassisSpeeds{
+        -constants::swerve::maxSpeed           * frc::ApplyDeadband(m_driveController.GetRawAxis(1), constants::controller::TranslationDeadZone),
+        -constants::swerve::maxSpeed           * frc::ApplyDeadband(m_driveController.GetRawAxis(0), constants::controller::TranslationDeadZone),
+         constants::swerve::maxAngularVelocity * frc::ApplyDeadband(m_driveController.GetRawAxis(4), constants::controller::RotateDeadZone)
     };
 }
 #pragma endregion
